@@ -1,7 +1,7 @@
 name: Compilar e testar portal
 on:
   push:
-    branches: [main, student-portal]
+    branches: [main, student-portal, profile-social]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -54,3 +54,6 @@ jobs:
           exit 1
       - name: Testar portal, privacidade e recuperação
         run: python3 backend/tests/login_flow.py http://localhost:8080
+
+      - name: Testar perfis, amizades e mensagens
+        run: python3 backend/tests/social_flow.py http://localhost:8080

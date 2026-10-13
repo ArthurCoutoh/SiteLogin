@@ -19,6 +19,7 @@ builder.Services.AddAntiforgery(o=>{
 });
 builder.Services.AddRateLimiter(o=>{
     o.RejectionStatusCode=429;
+    o.AddPolicy("social",context=>RateLimitPartition.GetFixedWindowLimiter((context.Items["account"] as Account)?.Id.ToString()??context.Connection.RemoteIpAddress?.ToString()??"unknown",_=>new FixedWindowRateLimiterOptions{PermitLimit=60,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
     o.AddPolicy("auth",context=>RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString()??"unknown",
         _=>new FixedWindowRateLimiterOptions{PermitLimit=30,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
 });
@@ -131,6 +132,7 @@ app.MapPost("/api/admin/students/{id:long}/status",async(long id,StatusRequest i
     return Results.Ok(new{message="Acesso atualizado."});
 });
 Portal.Map(app,db,hasher);
+Social.Map(app,db);
 // No public static-file middleware: authorization happens BEFORE reading study files.
 app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     if((path??"").Contains('\\'))return Results.NotFound();
@@ -140,12 +142,13 @@ app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     var relative=Path.GetRelativePath(siteRoot,full).Replace('\\','/');
     if(relative!="."&&relative.Split('/').Any(part=>part.StartsWith('.')))return Results.NotFound();
     var folder=relative.Split('/')[0];
-    var study=folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)||folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
+    var study=folder.Equals("amigos",StringComparison.OrdinalIgnoreCase)||folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)||folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
     var admin=folder.Equals("alunos",StringComparison.OrdinalIgnoreCase);
     if(study||admin){
         var a=Current(context);
         if(a==null){if(Path.GetExtension(relative) is ".js" or ".css" or ".json")return Error("Entre para continuar.",401);return Results.Redirect("/login/index.html?returnUrl="+Uri.EscapeDataString("/"+relative));}
         if(admin&&a.Role!="admin")return Error("Acesso restrito ao professor.",403);
+        if(folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)&&a.Role=="admin"){if(Path.GetExtension(relative) is ".js" or ".css")return Error("Use o painel do professor.",403);return Results.Redirect("/alunos/index.html");}
     } else if(relative is not ("." or "index.html" or "config.js")&&!publicFolders.Contains(folder))return Results.NotFound();
     if(Directory.Exists(full))full=Path.Combine(full,"index.html");
     var extension=Path.GetExtension(full).ToLowerInvariant();

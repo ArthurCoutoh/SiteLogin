@@ -46,3 +46,35 @@ CREATE TABLE IF NOT EXISTS password_requests (
  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
  INDEX request_user(user_id,status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+ user_id BIGINT PRIMARY KEY,
+ biography VARCHAR(600) NOT NULL DEFAULT '',
+ avatar MEDIUMTEXT NULL,
+ discoverable BOOLEAN NOT NULL DEFAULT FALSE,
+ FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS friendships (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ low_user BIGINT NOT NULL,
+ high_user BIGINT NOT NULL,
+ requested_by BIGINT NOT NULL,
+ status ENUM('pending','accepted','declined','removed','blocked') NOT NULL DEFAULT 'pending',
+ blocked_by BIGINT NULL,
+ updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE friendship_pair(low_user,high_user),
+ FOREIGN KEY(low_user) REFERENCES users(id) ON DELETE CASCADE,
+ FOREIGN KEY(high_user) REFERENCES users(id) ON DELETE CASCADE,
+ FOREIGN KEY(requested_by) REFERENCES users(id) ON DELETE CASCADE,
+ FOREIGN KEY(blocked_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS messages (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ friendship_id BIGINT NOT NULL,
+ sender_id BIGINT NOT NULL,
+ content VARCHAR(2000) NOT NULL,
+ sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY(friendship_id) REFERENCES friendships(id) ON DELETE CASCADE,
+ FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+ INDEX message_thread(friendship_id,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

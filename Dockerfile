@@ -21,6 +21,7 @@ COPY login/ ./site/login/
 COPY alunos/ ./site/alunos/
 COPY entregas/ ./site/entregas/
 COPY termos/ ./site/termos/
+COPY amigos/ ./site/amigos/
 ENV SiteRoot=/app/site ASPNETCORE_HTTP_PORTS=8080 ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080
 USER $APP_UID

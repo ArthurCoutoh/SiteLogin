@@ -4,7 +4,7 @@ using MySqlConnector;
 
 public static class Portal
 {
-    public const string TermsVersion="2026-10-13";
+    public const string TermsVersion="2026-10-13.2";
     static Account? Current(HttpContext c)=>c.Items["account"] as Account;
     static IResult Error(string message,int status=400)=>Results.Json(new{message},statusCode:status);
     static async Task<int> Execute(MySqlConnection c,MySqlTransaction tx,string sql,params (string Key,object? Value)[] args)
@@ -15,20 +15,23 @@ public static class Portal
     {
         app.MapGet("/api/profile",async(HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
-            await using var c=await db.Open();await using var q=Db.Command(c,"SELECT share_with_teacher,terms_version FROM user_settings WHERE user_id=@id",("@id",a.Id));await using var r=await q.ExecuteReaderAsync();
-            var found=await r.ReadAsync();return Results.Ok(new{name=a.Name,email=a.Email,shareWithTeacher=found&&r.GetBoolean(0),acceptedTerms=found&&!r.IsDBNull(1)&&r.GetString(1)==TermsVersion});
+            await using var c=await db.Open();await using var q=Db.Command(c,"SELECT p.share_with_teacher,p.terms_version,f.biography,f.avatar,f.discoverable FROM users u LEFT JOIN user_settings p ON p.user_id=u.id LEFT JOIN user_profiles f ON f.user_id=u.id WHERE u.id=@id",("@id",a.Id));await using var r=await q.ExecuteReaderAsync();
+            var found=await r.ReadAsync();return Results.Ok(new{id=a.Id,name=a.Name,email=a.Email,role=a.Role,shareWithTeacher=found&&!r.IsDBNull(0)&&r.GetBoolean(0),acceptedTerms=a.Role=="admin"||(found&&!r.IsDBNull(1)&&r.GetString(1)==TermsVersion),biography=found&&!r.IsDBNull(2)?r.GetString(2):"",avatar=found&&!r.IsDBNull(3)?r.GetString(3):null,discoverable=found&&!r.IsDBNull(4)&&r.GetBoolean(4)});
         });
         app.MapPost("/api/profile/privacy",async(PrivacyRequest input,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
             await db.Execute("INSERT INTO user_settings(user_id,share_with_teacher,terms_version,accepted_at) VALUES(@id,@share,@terms,@at) ON DUPLICATE KEY UPDATE share_with_teacher=@share,terms_version=COALESCE(@terms,terms_version),accepted_at=COALESCE(@at,accepted_at)",("@id",a.Id),("@share",input.ShareWithTeacher),("@terms",input.AcceptTerms?TermsVersion:null),("@at",input.AcceptTerms?DateTime.UtcNow:null));
             return Results.Ok(new{message="Preferências salvas. O professor só pode consultar suas entregas enquanto você permitir."});
         });
         app.MapGet("/api/submissions",async(HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
             return await ReadSubmissions(db,false,a.Id);
         });
         app.MapPost("/api/submissions",async(SubmissionRequest input,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
             var title=input.Title?.Trim();
             if(input.ExerciseNumber<1||input.ExerciseNumber>30||string.IsNullOrWhiteSpace(title)||title.Length>150||string.IsNullOrWhiteSpace(input.Solution)||input.Solution.Length>20000)return Error("Escolha um exercício de 1 a 30, título de até 150 caracteres e código de até 20.000 caracteres.");
             await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
@@ -41,6 +44,7 @@ public static class Portal
         });
         app.MapPost("/api/submissions/{id:long}/delete",async(long id,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
             var changed=await db.Execute("DELETE FROM submissions WHERE id=@id AND user_id=@user",("@id",id),("@user",a.Id));return changed==0?Error("Entrega não encontrada.",404):Results.Ok(new{message="Entrega excluída."});
         });
         app.MapGet("/api/teacher/submissions",async(HttpContext context)=>Current(context)?.Role!="admin"?Error("Acesso restrito ao professor.",403):await ReadSubmissions(db,true,0));

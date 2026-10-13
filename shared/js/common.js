@@ -6,7 +6,7 @@ window.portfolioToast=message=>{const toast=document.getElementById("toast");if(
 // One theme preference is shared by every portfolio page.
 (() => {
  const header=document.querySelector('header');if(!header)return;
- const control=document.createElement('div');control.className='theme-switch';control.setAttribute('role','group');control.setAttribute('aria-label','Color theme');
+ const control=document.createElement('div');control.className='theme-switch';control.hidden=true;control.setAttribute('role','group');control.setAttribute('aria-label','Color theme');
  for(const theme of ['light','dark']){
   const button=document.createElement('button');button.type='button';button.textContent=theme==='light'?'Light':'Dark';button.dataset.themeChoice=theme;
   button.addEventListener('click',()=>{document.documentElement.dataset.theme=theme;try{localStorage.setItem('portfolio-theme',theme);}catch(e){}sync();window.dispatchEvent(new Event('portfolio-theme-change'));});control.append(button);
