@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="pt-BR"><head><script>try{document.documentElement.dataset.theme=localStorage.getItem("portfolio-theme")==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Exercício 3: Sistema de Reservas de Cinema</title><link rel="stylesheet" href="../../shared/css/base.css"><link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="../pagina.css"><script src="../../shared/js/common.js" defer></script><script src="../../shared/js/background.js" defer></script><link rel="stylesheet" href="../../login/style.css"><script src="../../shared/js/auth.js" defer></script></head><body><canvas id="constellation-background" data-image="../../assets/maos-constelacao.png" aria-hidden="true"></canvas><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="exercise-header"><nav aria-label="Navegação do exercício"><a class="nav-button" href="../../index.html">Menu principal</a><a class="nav-button nav-exercises" href="../index.html">Exercícios</a><a class="nav-button nav-support" href="../../apoio/index.html">Apoio</a></nav></header><main id="conteudo" class="container exercise-detail"><article class="exercise-document"><div class="exercise-heading"><p class="eyebrow">EXERCÍCIO 3 / C#</p><span class="difficulty-badge" data-difficulty="hard">Difícil</span></div><h1>Sistema de Reservas de Cinema</h1><div class="exercise-content"><p>Escreva uma aplicação que simule um sistema de reservas de um cinema. O cinema tem uma sala com 10 fileiras e 15 assentos por fileira. O programa deve:</p><ol><li><strong>Representar os assentos:</strong><ul><li>Use uma matriz bidimensional <code>bool[10, 15]</code> para representar os assentos do cinema.</li><li><code>true</code> indica que o assento está ocupado.</li><li><code>false</code> indica que o assento está livre.</li></ul></li><li><strong>Menu principal:</strong><p>Exibir um menu com as seguintes opções:</p><ul><li><strong>1 - Visualizar Mapa de Assentos:</strong> Mostra o estado atual dos assentos (livres ou ocupados). Use caracteres como <code>[_]</code> para livre e <code>[O]</code> para ocupado.</li><li><strong>2 - Reservar Assento:</strong> Solicita ao usuário que escolha uma fileira (0-9) e um assento (0-14). Se o assento estiver livre, o programa deve marcá-lo como ocupado e exibir uma mensagem de sucesso. Se o assento estiver ocupado, o programa deve exibir uma mensagem informando que o assento está indisponível.</li><li><strong>3 - Cancelar Reserva:</strong> Solicita ao usuário que escolha uma fileira (0-9) e um assento (0-14). Se o assento estiver ocupado, o programa deve marcá-lo como livre e exibir uma mensagem de sucesso. Se o assento estiver livre, o programa deve exibir uma mensagem informando que o assento já está livre.</li><li><strong>4 - Relatório de Reservas:</strong><ul><li>Calcula e exibe a quantidade total de assentos livres. (Criar uma função para isso).</li><li>Calcula e exibe a quantidade total de assentos ocupados. (Criar uma função para isso).</li><li>Calcula e exibe a porcentagem de ocupação do cinema. (Criar uma função para isso).</li></ul></li><li><strong>5 - Sair:</strong> Encerra o programa.</li></ul></li><li><strong>Funções auxiliares:</strong><ul><li>Crie funções separadas para cada uma das operações do menu (visualizar mapa, reservar, cancelar, relatório). Isso ajudará a organizar o código e torná-lo mais legível.</li></ul></li><li><strong>Validação:</strong><ul><li>O programa deve garantir que o usuário insira números válidos para fileiras e assentos.</li><li>O programa não deve permitir a reserva de um assento já ocupado ou o cancelamento de um assento já livre.</li></ul></li></ol><h2>Estruturas a praticar</h2><p><code>if / else</code>, <code>switch case</code>, <code>while</code>, <code>for</code>, <code>matrizes</code>, <code>funções</code>.</p><h2>Validação: o que usar</h2><p>Use <code>int.TryParse</code> para fileira, assento e menu. Com if / else, confira fileira 0–9 e assento 0–14 antes de acessar a matriz; verifique o bool para reservar ou cancelar. Use while para entradas inválidas e para o menu.</p><h2>Exemplo de interação</h2><pre><code>Menu:
+1 - Visualizar Mapa de Assentos
+2 - Reservar Assento
+3 - Cancelar Reserva
+4 - Relatório de Reservas
+5 - Sair
+Escolha uma opção: 1
+
+Mapa de Assentos:
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+
+Menu:
+1 - Visualizar Mapa de Assentos
+2 - Reservar Assento
+3 - Cancelar Reserva
+4 - Relatório de Reservas
+5 - Sair
+Escolha uma opção: 2
+Digite a fileira (0-9): 0
+Digite o assento (0-14): 5
+Assento reservado com sucesso!
+
+Menu:
+1 - Visualizar Mapa de Assentos
+2 - Reservar Assento
+3 - Cancelar Reserva
+4 - Relatório de Reservas
+5 - Sair
+Escolha uma opção: 1
+
+Mapa de Assentos:
+[_] [_] [_] [_] [_] [O] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+[_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_] [_]
+... (outras fileiras)
+
+Menu:
+1 - Visualizar Mapa de Assentos
+2 - Reservar Assento
+3 - Cancelar Reserva
+4 - Relatório de Reservas
+5 - Sair
+Escolha uma opção: 4
+
+Relatório de Reservas:
+Assentos Livres: 149
+Assentos Ocupados: 1
+Porcentagem de Ocupação: 0.67%
+
+Menu:
+1 - Visualizar Mapa de Assentos
+2 - Reservar Assento
+3 - Cancelar Reserva
+4 - Relatório de Reservas
+5 - Sair
+Escolha uma opção: 5</code></pre><h2>Dicas</h2><ul><li>Use loops <code>for</code> aninhados para percorrer a matriz de assentos.</li><li>Use um loop <code>while</code> para manter o menu principal ativo até que o usuário escolha sair.</li><li>Use <code>Console.ReadLine()</code> e <code>Convert.ToInt32()</code> para obter a entrada do usuário.</li><li>Use <code>Console.WriteLine()</code> para formatar a saída, especialmente para exibir o mapa de assentos de forma clara.</li><li>Use <code>switch</code> para lidar com as opções do menu.</li><li>…e lembre-se: os índices das matrizes em C# começam em 0.</li></ul></div></article></main></body></html>

@@ -1,0 +1,5 @@
+.music-card .cover-slot{width:190px}.boxing-card{min-height:290px}@media(max-width:800px){.music-card .cover-slot{width:135px}}@media(max-width:400px){.music-card .cover-slot{width:100%}}
+
+.music-content .spotify-link{display:inline-flex;align-items:center;gap:9px;min-height:40px;text-decoration:none;color:var(--text)}
+.music-content .spotify-link:hover span{text-decoration:underline;text-underline-offset:4px}
+.spotify-link .spotify-logo{width:24px;height:24px;flex:0 0 24px;stroke:none}

@@ -1,0 +1,7 @@
+"use strict";
+(()=>{
+ const api=window.PortfolioAuth,message=document.getElementById('students-message'),list=document.getElementById('students-list');
+ const statusText={pending:'Aguardando aprovação',active:'Acesso liberado',blocked:'Bloqueado'};
+ async function load(){list.replaceChildren();message.textContent='Carregando alunos…';try{const users=await api.request('/api/admin/students');message.textContent=users.length?`${users.length} aluno(s)`:'Nenhum cadastro recebido ainda.';for(const user of users){const card=document.createElement('article');card.className='student-card';const name=document.createElement('h2');name.textContent=user.name;const email=document.createElement('p');email.textContent=user.email;const status=document.createElement('p');status.textContent=statusText[user.status];const actions=document.createElement('div');actions.className='student-actions';for(const [value,label]of [['active','Liberar acesso'],['blocked','Bloquear']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=user.status===value;button.addEventListener('click',async()=>{button.disabled=true;try{await api.request(`/api/admin/students/${user.id}/status`,{method:'POST',body:{status:value}});await load();}catch(e){message.textContent=e.message;button.disabled=false;}});actions.append(button);}card.append(name,email,status,actions);list.append(card);}}catch(e){message.textContent=e.message;}}
+ load();
+})();

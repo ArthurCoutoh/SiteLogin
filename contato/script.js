@@ -1,0 +1,2 @@
+"use strict";
+document.getElementById("copy-phone").addEventListener("click",async()=>{const text=(window.PORTFOLIO_CONFIG||{}).numeroExibido||"(69) 99364-4926";try{if(navigator.clipboard&&isSecureContext)await navigator.clipboard.writeText(text);else{const field=document.createElement("textarea");field.value=text;field.style.position="fixed";field.style.opacity="0";document.body.append(field);field.select();if(!document.execCommand("copy"))throw Error();field.remove();}window.portfolioToast("Número copiado!");}catch{window.portfolioToast(`Copie este número: ${text}`);}});

@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="pt-BR"><head><script>try{document.documentElement.dataset.theme=localStorage.getItem("portfolio-theme")==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Estruturas de condição | Apoio · Arthur Couto</title><link rel="stylesheet" href="../../shared/css/base.css"><link rel="stylesheet" href="../../exercicios/pagina.css"><link rel="stylesheet" href="../style.css"><script src="../../shared/js/common.js" defer></script><script src="../../shared/js/background.js" defer></script><link rel="stylesheet" href="../../login/style.css"><script src="../../shared/js/auth.js" defer></script></head><body><canvas id="constellation-background" data-image="../../assets/maos-constelacao.png" aria-hidden="true"></canvas><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="support-header"><nav aria-label="Navegação de apoio"><a class="nav-button" href="../../index.html">Menu</a><a class="nav-button nav-exercises" href="../../exercicios/index.html">Exercícios</a></nav></header><main id="conteudo" class="container support-detail"><article class="exercise-document support-document"><div class="exercise-heading"><p class="eyebrow">APOIO 02 / C#</p></div><h1>Estruturas de condição</h1><div class="exercise-content"><h2>1. Decisões no programa</h2><p>Uma condição é uma expressão cujo resultado é <code>true</code> (verdadeiro) ou <code>false</code> (falso). Ela permite executar instruções somente em determinadas situações. Por exemplo: autorizar uma compra apenas quando o estoque for suficiente.</p><h2>2. Comparações</h2><div class="table-scroll"><table><thead><tr><th scope="col">Operador</th><th scope="col">Significado</th><th scope="col">Exemplo</th></tr></thead><tbody><tr><td><code>==</code></td><td>Igual a</td><td><code>idade == 18</code></td></tr><tr><td><code>!=</code></td><td>Diferente de</td><td><code>opcao != 5</code></td></tr><tr><td><code>&gt;</code></td><td>Maior que</td><td><code>nota &gt; 7</code></td></tr><tr><td><code>&lt;</code></td><td>Menor que</td><td><code>temperatura &lt; 0</code></td></tr><tr><td><code>&gt;=</code></td><td>Maior ou igual a</td><td><code>estoque &gt;= quantidade</code></td></tr><tr><td><code>&lt;=</code></td><td>Menor ou igual a</td><td><code>idade &lt;= 12</code></td></tr></tbody></table></div><p><code>=</code> atribui um valor; <code>==</code> compara valores. Os operadores <code>&gt;</code> e <code>&lt;</code> excluem o limite. Os operadores <code>&gt;=</code> e <code>&lt;=</code> incluem o limite.</p><h2>3. If: executar quando for verdadeiro</h2><pre><code>int estoque = 8;
+int quantidade = 3;
+
+if (estoque &gt;= quantidade)
+{
+    Console.WriteLine(&quot;Há estoque suficiente.&quot;);
+}</code></pre><p>Se a condição for falsa, esse bloco é ignorado. Depois da decisão, a execução continua na instrução seguinte. Use chaves para deixar claro quais instruções pertencem à condição.</p><h2>4. If e else: dois caminhos</h2><pre><code>int idade = 17;
+
+if (idade &gt;= 18)
+{
+    Console.WriteLine(&quot;Pessoa maior de idade.&quot;);
+}
+else
+{
+    Console.WriteLine(&quot;Pessoa menor de idade.&quot;);
+}</code></pre><p>Somente um dos blocos será executado. Com idade 17, a saída é “Pessoa menor de idade.”. Com idade 18, o primeiro bloco é executado porque o limite está incluído.</p><h2>5. Else if: várias faixas</h2><pre><code>double nota = 6.5;
+
+if (nota &lt; 0 || nota &gt; 10)
+{
+    Console.WriteLine(&quot;Nota inválida.&quot;);
+}
+else if (nota &gt;= 7)
+{
+    Console.WriteLine(&quot;Aprovado.&quot;);
+}
+else if (nota &gt;= 5)
+{
+    Console.WriteLine(&quot;Recuperação.&quot;);
+}
+else
+{
+    Console.WriteLine(&quot;Reprovado.&quot;);
+}</code></pre><p>Nesta regra de exemplo, notas entre 5 e menos de 7 indicam recuperação. A cadeia é avaliada de cima para baixo e termina no primeiro bloco cuja condição for verdadeira. Por isso, a ordem das verificações importa.</p><p>Vários <code>if</code> independentes podem executar mais de um bloco. Uma cadeia <code>if / else if / else</code> escolhe apenas um caminho. Use condições independentes quando várias ações puderem acontecer juntas.</p><h2>6. Operadores lógicos</h2><div class="table-scroll"><table><thead><tr><th scope="col">Operador</th><th scope="col">Regra</th><th scope="col">Exemplo</th></tr></thead><tbody><tr><td><code>&amp;&amp;</code></td><td>E: as duas condições precisam ser verdadeiras</td><td><code>idade &gt;= 18 &amp;&amp; possuiDocumento</code></td></tr><tr><td><code>||</code></td><td>OU: pelo menos uma condição precisa ser verdadeira</td><td><code>dia == "sábado" || dia == "domingo"</code></td></tr><tr><td><code>!</code></td><td>NÃO: inverte o valor lógico</td><td><code>!ocupado</code></td></tr></tbody></table></div><p>Para expressar uma faixa, faça as duas comparações: <code>nota &gt;= 0 &amp;&amp; nota &lt;= 10</code>. Não escreva <code>0 &lt;= nota &lt;= 10</code>. Use parênteses quando misturar condições para tornar a intenção clara.</p><p><code>&amp;&amp;</code> e <code>||</code> usam avaliação de curto-circuito. No E, se a primeira parte for falsa, a segunda não precisa ser avaliada. No OU, se a primeira parte for verdadeira, a segunda não precisa ser avaliada.</p><h2>7. Validação e condições dentro de condições</h2><pre><code>int estoque = 10;
+Console.Write(&quot;Quantidade desejada: &quot;);
+int quantidade;
+
+if (int.TryParse(Console.ReadLine(), out quantidade))
+{
+    if (quantidade &gt; 0 &amp;&amp; quantidade &lt;= estoque)
+    {
+        estoque = estoque - quantidade;
+        Console.WriteLine($&quot;Venda realizada. Restam {estoque} unidades.&quot;);
+    }
+    else
+    {
+        Console.WriteLine(&quot;Quantidade inválida ou estoque insuficiente.&quot;);
+    }
+}
+else
+{
+    Console.WriteLine(&quot;Digite um número inteiro.&quot;);
+}</code></pre><p>A primeira decisão valida a conversão. A segunda verifica a regra da venda. Separar essas etapas ajuda a identificar por que uma entrada foi recusada.</p><h2>8. Erros comuns e teste de limites</h2><ul><li>Não coloque <code>;</code> logo depois de <code>if (condicao)</code>: isso encerra a instrução e separa o bloco da condição.</li><li>Evite faixas sobrepostas e verifique a ordem dos <code>else if</code>.</li><li>Não use <code>||</code> para uma faixa que exige as duas condições simultaneamente.</li><li>Teste os valores imediatamente antes, no limite e depois do limite. Para <code>idade &gt;= 18</code>, teste 17, 18 e 19.</li></ul><h2>Pratique</h2><p>Leia uma idade e recuse valores negativos. Para as demais entradas, mostre “criança” até 11 anos, “adolescente” de 12 a 17 e “adulto” a partir de 18. Teste as fronteiras de cada faixa.</p></div><a class="lesson-back" href="../index.html">Voltar para Apoio</a></article></main></body></html>

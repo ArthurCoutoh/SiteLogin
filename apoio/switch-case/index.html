@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="pt-BR"><head><script>try{document.documentElement.dataset.theme=localStorage.getItem("portfolio-theme")==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Switch Case | Apoio · Arthur Couto</title><link rel="stylesheet" href="../../shared/css/base.css"><link rel="stylesheet" href="../../exercicios/pagina.css"><link rel="stylesheet" href="../style.css"><script src="../../shared/js/common.js" defer></script><script src="../../shared/js/background.js" defer></script><link rel="stylesheet" href="../../login/style.css"><script src="../../shared/js/auth.js" defer></script></head><body><canvas id="constellation-background" data-image="../../assets/maos-constelacao.png" aria-hidden="true"></canvas><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="support-header"><nav aria-label="Navegação de apoio"><a class="nav-button" href="../../index.html">Menu</a><a class="nav-button nav-exercises" href="../../exercicios/index.html">Exercícios</a></nav></header><main id="conteudo" class="container support-detail"><article class="exercise-document support-document"><div class="exercise-heading"><p class="eyebrow">APOIO 03 / C#</p></div><h1>Switch Case</h1><div class="exercise-content"><h2>1. Para que serve?</h2><p><code>switch</code> seleciona um bloco a partir de uma expressão. No uso básico, ele compara um valor com alternativas definidas em <code>case</code>. É útil para menus: opção 1 cadastra, opção 2 consulta e opção 3 encerra.</p><p><code>if</code> é conveniente para faixas e condições combinadas. Um <code>switch</code> com valores explícitos facilita a leitura quando você tem várias opções específicas. C# também permite padrões mais avançados em switch, mas os casos simples são suficientes para começar.</p><h2>2. Estrutura</h2><pre><code>int opcao = 2;
+
+switch (opcao)
+{
+    case 1:
+        Console.WriteLine(&quot;Cadastrar.&quot;);
+        break;
+    case 2:
+        Console.WriteLine(&quot;Consultar.&quot;);
+        break;
+    default:
+        Console.WriteLine(&quot;Opção desconhecida.&quot;);
+        break;
+}</code></pre><p>Nesse exemplo, a saída é “Consultar.”. A expressão entre parênteses é avaliada para selecionar o caso correspondente.</p><div class="table-scroll"><table><thead><tr><th scope="col">Parte</th><th scope="col">O que faz</th></tr></thead><tbody><tr><td><code>switch (opcao)</code></td><td>Indica o valor usado para escolher o caminho.</td></tr><tr><td><code>case 1:</code></td><td>Define uma alternativa para o valor 1.</td></tr><tr><td><code>break;</code></td><td>Encerra o switch e continua após seu bloco.</td></tr><tr><td><code>default:</code></td><td>Executa quando nenhum dos casos corresponde; é opcional, mas útil para entradas inesperadas.</td></tr></tbody></table></div><h2>3. Menu com entrada validada</h2><pre><code>Console.WriteLine(&quot;1 - Cadastrar&quot;);
+Console.WriteLine(&quot;2 - Consultar&quot;);
+Console.WriteLine(&quot;3 - Sair&quot;);
+Console.Write(&quot;Escolha uma opção: &quot;);
+
+int opcao;
+if (int.TryParse(Console.ReadLine(), out opcao))
+{
+    switch (opcao)
+    {
+        case 1:
+            Console.WriteLine(&quot;Cadastro selecionado.&quot;);
+            break;
+        case 2:
+            Console.WriteLine(&quot;Consulta selecionada.&quot;);
+            break;
+        case 3:
+            Console.WriteLine(&quot;Saída selecionada.&quot;);
+            break;
+        default:
+            Console.WriteLine(&quot;Escolha 1, 2 ou 3.&quot;);
+            break;
+    }
+}
+else
+{
+    Console.WriteLine(&quot;Digite uma opção numérica.&quot;);
+}</code></pre><p>Esse código mostra o menu uma vez. Para mantê-lo ativo, combine a decisão com um laço, como no exemplo a seguir. Validar a conversão é diferente de validar a opção: “abc” não é um inteiro; 9 é um inteiro, mas não pertence ao menu.</p><h2>4. Menu que se repete</h2><pre><code>int opcao = 0;
+
+do
+{
+    Console.WriteLine(&quot;1 - Mostrar mensagem&quot;);
+    Console.WriteLine(&quot;2 - Sair&quot;);
+    Console.Write(&quot;Opção: &quot;);
+
+    if (!int.TryParse(Console.ReadLine(), out opcao))
+    {
+        Console.WriteLine(&quot;Entrada inválida.&quot;);
+        opcao = 0;
+        continue;
+    }
+
+    switch (opcao)
+    {
+        case 1:
+            Console.WriteLine(&quot;Bem-vindo!&quot;);
+            break;
+        case 2:
+            Console.WriteLine(&quot;Encerrando...&quot;);
+            break;
+        default:
+            Console.WriteLine(&quot;Escolha 1 ou 2.&quot;);
+            break;
+    }
+} while (opcao != 2);</code></pre><p>O <code>break</code> dentro de um caso encerra apenas o <code>switch</code>. Quem encerra o <code>do-while</code> é a condição <code>opcao != 2</code>, que fica falsa quando a opção é 2. O <code>continue</code>, usado antes do switch, passa para a verificação do laço sem executar o restante daquela repetição.</p><h2>5. Vários casos com a mesma ação</h2><pre><code>int dia = 7;
+
+switch (dia)
+{
+    case 6:
+    case 7:
+        Console.WriteLine(&quot;Fim de semana.&quot;);
+        break;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        Console.WriteLine(&quot;Dia útil.&quot;);
+        break;
+    default:
+        Console.WriteLine(&quot;Informe um dia de 1 a 7.&quot;);
+        break;
+}</code></pre><p>Aqui, a convenção do exemplo é 1 para segunda-feira e 7 para domingo. Rótulos consecutivos podem compartilhar o mesmo bloco. Em C#, um caso com instruções não passa automaticamente para o próximo: o bloco precisa encerrar seu fluxo, por exemplo com <code>break</code>.</p><h2>6. Switch com texto</h2><pre><code>Console.Write(&quot;Digite abrir ou fechar: &quot;);
+string comando = (Console.ReadLine() ?? &quot;&quot;).Trim().ToLowerInvariant();
+
+switch (comando)
+{
+    case &quot;abrir&quot;:
+        Console.WriteLine(&quot;Abertura solicitada.&quot;);
+        break;
+    case &quot;fechar&quot;:
+        Console.WriteLine(&quot;Fechamento solicitado.&quot;);
+        break;
+    default:
+        Console.WriteLine(&quot;Comando não reconhecido.&quot;);
+        break;
+}</code></pre><p><code>Trim()</code> remove espaços no início e no fim. <code>ToLowerInvariant()</code> padroniza as letras para minúsculas, para que “ABRIR” e “abrir” sejam tratados da mesma forma nesse menu.</p><h2>7. Erros comuns</h2><ul><li>Não esqueça os dois-pontos após <code>case</code> e <code>default</code>.</li><li>Não repita o mesmo valor em dois casos.</li><li>Use casos compatíveis com o tipo da expressão: para um texto, escreva <code>case "1":</code>; para um inteiro, <code>case 1:</code>.</li><li>Não espere que <code>break</code> encerre todo o programa. Ele encerra o switch ou laço mais próximo ao qual se aplica.</li><li>Inclua uma resposta para opções não previstas.</li></ul><h2>Pratique</h2><p>Crie um menu com 1 para somar dois números, 2 para subtrair e 3 para sair. Use switch e mantenha o menu ativo até a opção 3. Teste uma opção válida, uma opção fora da lista e um texto que não seja um número.</p></div><a class="lesson-back" href="../index.html">Voltar para Apoio</a></article></main></body></html>

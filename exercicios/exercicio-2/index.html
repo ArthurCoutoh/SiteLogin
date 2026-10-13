@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="pt-BR"><head><script>try{document.documentElement.dataset.theme=localStorage.getItem("portfolio-theme")==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Exercício 2: Loja de Produtos - Gerenciamento de Estoque</title><link rel="stylesheet" href="../../shared/css/base.css"><link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="../pagina.css"><script src="../../shared/js/common.js" defer></script><script src="../../shared/js/background.js" defer></script><link rel="stylesheet" href="../../login/style.css"><script src="../../shared/js/auth.js" defer></script></head><body><canvas id="constellation-background" data-image="../../assets/maos-constelacao.png" aria-hidden="true"></canvas><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="exercise-header"><nav aria-label="Navegação do exercício"><a class="nav-button" href="../../index.html">Menu principal</a><a class="nav-button nav-exercises" href="../index.html">Exercícios</a><a class="nav-button nav-support" href="../../apoio/index.html">Apoio</a></nav></header><main id="conteudo" class="container exercise-detail"><article class="exercise-document"><div class="exercise-heading"><p class="eyebrow">EXERCÍCIO 2 / C#</p><span class="difficulty-badge" data-difficulty="medium">Médio</span></div><h1>Loja de Produtos - Gerenciamento de Estoque</h1><div class="exercise-content"><p>Escreva uma aplicação para gerenciar o estoque de uma pequena loja que vende 4 tipos de produtos. O programa deve:</p><ol><li><strong>Armazenar dados:</strong><ul><li>Criar uma matriz bidimensional (4x3) onde cada linha representa um produto.</li><li>A primeira coluna deve armazenar a quantidade em estoque do produto (inteiro).</li><li>A segunda coluna deve armazenar o preço unitário do produto (double).</li><li>A terceira coluna deve armazenar o número de vendas daquele produto (inteiro).</li></ul></li><li><strong>Interação com o usuário:</strong><p>Criar um menu com as seguintes opções:</p><ul><li><strong>1 - Adicionar Estoque:</strong> Permite ao usuário escolher um produto (pelo índice da linha) e adicionar uma quantidade ao estoque.</li><li><strong>2 - Registrar Venda:</strong> Permite ao usuário escolher um produto e registrar uma venda, diminuindo a quantidade em estoque e incrementando o número de vendas. A venda só pode ser efetuada se houver estoque suficiente.</li><li><strong>3 - Consultar Estoque:</strong> Exibe a matriz de estoque formatada, mostrando a quantidade, o preço unitário e o número de vendas de cada produto.</li><li><strong>4 - Relatório:</strong><ul><li>Calcula e exibe o valor total do estoque (soma do valor de cada produto: quantidade × preço unitário). (Criar uma função para isso).</li><li>Calcula e exibe o total de vendas realizadas (soma do número de vendas de todos os produtos). (Criar uma função para isso).</li><li>Encontra e exibe o produto mais vendido (aquele com o maior número de vendas). (Criar uma função para isso).</li><li>Encontra e exibe o produto com maior valor em estoque (quantidade × preço unitário). (Criar uma função para isso).</li></ul></li><li><strong>5 - Sair:</strong> Encerra o programa.</li></ul></li><li><strong>Validação:</strong><ul><li>O programa não deve permitir a venda de produtos sem estoque suficiente.</li></ul></li></ol><h2>Estruturas a praticar</h2><p><code>if / else</code>, <code>switch case</code>, <code>do while</code>, <code>for</code>, <code>matrizes</code>, <code>funções</code>.</p><h2>Validação: o que usar</h2><p>Use <code>int.TryParse</code> para índices, quantidades, vendas e opções; <code>double.TryParse</code> para preços. Rejeite <code>double.IsNaN</code> e <code>double.IsInfinity</code>, preços negativos e quantidades não positivas. Use if / else para índices entre 0 e 3 e estoque suficiente; do while para o menu e while para repetir campos inválidos. Inicialize os quatro preços e os estoques antes do menu.</p><h2>Exemplo de interação</h2><pre><code>Menu:
+1 - Adicionar Estoque
+2 - Registrar Venda
+3 - Consultar Estoque
+4 - Relatório
+5 - Sair
+Escolha uma opção: 1
+Escolha o produto (0-3): 0
+Digite a quantidade a adicionar: 10
+Estoque atualizado!
+
+Menu:
+1 - Adicionar Estoque
+2 - Registrar Venda
+3 - Consultar Estoque
+4 - Relatório
+5 - Sair
+Escolha uma opção: 3
+
+Estoque:
+Produto: 0 | Quantidade: 20 | Preço Unitário: 12.50 | Vendas: 5
+Produto: 1 | Quantidade: 5 | Preço Unitário: 5.00 | Vendas: 2
+Produto: 2 | Quantidade: 15 | Preço Unitário: 25.00 | Vendas: 8
+Produto: 3 | Quantidade: 30 | Preço Unitário: 8.75 | Vendas: 1
+
+Menu:
+1 - Adicionar Estoque
+2 - Registrar Venda
+3 - Consultar Estoque
+4 - Relatório
+5 - Sair
+Escolha uma opção: 4
+
+Relatório:
+Valor total do estoque: R$ 1037.50
+Total de vendas realizadas: 16
+Produto mais vendido: 2 (8 vendas)
+Produto com maior valor em estoque: 2 (R$ 375.00)</code></pre><h2>Dicas</h2><ul><li>Use loops <code>for</code> para percorrer a matriz.</li><li>Use <code>Console.ReadLine()</code>, <code>Convert.ToInt32()</code> e <code>Convert.ToDouble()</code> para obter a entrada do usuário, com tratamento de erros.</li><li>Use um loop <code>do-while</code> para manter o menu ativo até que o usuário escolha sair.</li><li>Use <code>switch</code> para lidar com as opções do menu.</li><li>Use <code>double[,]</code> para os dados do estoque, pois precisamos armazenar números inteiros (quantidade e número de vendas) e números de ponto flutuante (preço unitário).</li></ul></div></article></main></body></html>

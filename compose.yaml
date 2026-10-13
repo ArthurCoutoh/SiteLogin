@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD em .env}
+      MYSQL_DATABASE: portfolio
+      MYSQL_USER: portfolio_app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD em .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -uportfolio_app -Dportfolio -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  app:
+    build: .
+    ports: ["8080:8080"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      PORT: 8080
+      MYSQLHOST: mysql
+      MYSQLPORT: 3306
+      MYSQLUSER: portfolio_app
+      MYSQLPASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD em .env}
+      MYSQLDATABASE: portfolio
+      MYSQL_SSL_MODE: Disabled
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Defina ADMIN_EMAIL em .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Defina ADMIN_PASSWORD em .env}
+    depends_on:
+      mysql:
+        condition: service_healthy
+volumes:
+  mysql_data:
