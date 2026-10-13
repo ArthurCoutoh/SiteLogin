@@ -23,7 +23,7 @@ window.PortfolioAuth=(()=>{
   const slot=document.createElement('div');slot.className='account-controls';header.append(slot);
   let user;try{user=await request('/api/auth/me');}catch{}
   const link=document.createElement('a');link.className='account-link';link.href=user?'/login/index.html?account=1':'/login/index.html';link.textContent=user?'Minha conta':'Entrar';slot.append(link);
-  if(user){const deliveries=document.createElement('a');deliveries.className='account-link';deliveries.href='/entregas/index.html';deliveries.textContent='Minhas entregas';slot.append(deliveries);if(user.role==='admin'){const panel=document.createElement('a');panel.className='account-link';panel.href='/alunos/index.html';panel.textContent='Alunos';slot.append(panel);}const exit=document.createElement('button');exit.type='button';exit.className='account-link';exit.textContent='Sair';exit.addEventListener('click',()=>logout().catch(e=>alert(e.message)));slot.append(exit);}
+  if(user){const deliveries=document.createElement('a');deliveries.className='account-link';const exercise=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);deliveries.href='/entregas/index.html'+(exercise?'?exercicio='+exercise[1]:'');deliveries.textContent=exercise?'Enviar solução':'Minhas entregas';slot.append(deliveries);if(user.role==='admin'){const panel=document.createElement('a');panel.className='account-link';panel.href='/alunos/index.html';panel.textContent='Alunos';slot.append(panel);}const exit=document.createElement('button');exit.type='button';exit.className='account-link';exit.textContent='Sair';exit.addEventListener('click',()=>logout().catch(e=>alert(e.message)));slot.append(exit);}
  }
  controls();return {request,returnPath,logout,resetCsrf:()=>{csrfToken=null;}};
 })();
