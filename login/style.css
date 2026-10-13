@@ -23,10 +23,10 @@ body[data-social-view=friends] .friends-layout{grid-template-columns:minmax(0,1f
 @media(max-width:800px){body[data-social-view=friends] #friends-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){body[data-social-view=friends] #friends-list{grid-template-columns:minmax(0,1fr)}.clean-header{padding-inline:12px!important}.profile-popover{left:12px}.navigation-popover{right:12px}}
 /* Short, restrained motion for menus and controls. */
-.profile-popover:not([hidden]){transform-origin:top left;animation:profile-menu-down .2s ease-out both}.navigation-popover:not([hidden]){transform-origin:top right;animation:navigation-menu-left .2s ease-out both}
-@keyframes profile-menu-down{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes navigation-menu-left{from{opacity:0;transform:translateX(20px) scale(.98)}to{opacity:1;transform:translateX(0) scale(1)}}
 :is(.avatar-trigger,.hamburger-trigger,.dots-button,.menu-option,.friend-action,.auth-submit,.dialog-close,.friends-tabs button,.theme-switch button){transition:transform .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,opacity .16s ease}
 @media(hover:hover){.avatar-trigger:hover,.hamburger-trigger:hover,.dots-button:hover{border-color:var(--red);box-shadow:0 0 0 3px #ff354a12}.menu-option:hover{transform:translateX(2px)}.friend-action:hover,.auth-submit:hover{transform:translateY(-1px);box-shadow:0 4px 12px #0002}.dialog-close:hover{border-color:var(--red)}}
 :is(.avatar-trigger,.hamburger-trigger,.dots-button,.friend-action,.auth-submit,.menu-option,.dialog-close):active{transform:scale(.97)}
 @media(prefers-reduced-motion:reduce){.shell-popover:not([hidden]){animation:none}:is(.avatar-trigger,.hamburger-trigger,.dots-button,.menu-option,.friend-action,.auth-submit,.dialog-close,.friends-tabs button,.theme-switch button){transition:none;transform:none!important}}
+
+/* JS controls the complete opening and closing lifecycle before applying hidden. */
+.profile-popover{transform-origin:top left}.navigation-popover{transform-origin:top right}.shell-popover{animation:none!important}.shell-popover[data-motion-state=opening],.shell-popover[data-motion-state=closing]{will-change:transform,opacity,clip-path}.shell-popover[data-motion-state=closing]{pointer-events:none}.avatar-trigger[aria-expanded=true],.hamburger-trigger[aria-expanded=true]{border-color:var(--red);box-shadow:0 0 0 3px #ff354a12}
