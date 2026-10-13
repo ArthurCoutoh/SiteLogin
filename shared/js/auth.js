@@ -41,26 +41,23 @@ window.PortfolioAuth=(()=>{
   const navButton=node('button','☰','hamburger-trigger');navButton.type='button';navButton.setAttribute('aria-label','Abrir navegação');navButton.setAttribute('aria-expanded','false');navButton.setAttribute('aria-controls','navigation-popover');header.append(navButton);
   const nav=node('div',undefined,'navigation-popover shell-popover');nav.id='navigation-popover';nav.hidden=true;outer.append(settings,nav);
   const menuMotion=new WeakMap();
-  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   function expanded(menu,value){(menu===nav?navButton:photo)?.setAttribute('aria-expanded',String(value));}
-  function closedFrame(menu){return menu===settings?{opacity:0,transform:'translateY(-18px) scaleY(.9)',clipPath:'inset(0% 0% 100% 0% round 12px)'}:{opacity:0,transform:'scaleX(.82)',clipPath:'inset(0% 0% 0% 100% round 12px)'};}
+  function closedFrame(menu){return menu===settings?{opacity:1,transform:'translateY(-48px)',clipPath:'inset(0% 0% 100% 0% round 12px)'}:{opacity:1,transform:'scaleX(.45)',clipPath:'inset(0% 0% 0% 100% round 12px)'};}
   const openedFrame={opacity:1,transform:'none',clipPath:'inset(0% 0% 0% 0% round 12px)'};
   function cancelMotion(menu){for(const animation of menu.getAnimations({subtree:true}))animation.cancel();menuMotion.delete(menu);}
   function closeMenu(menu){
    if(menu.hidden||menu.dataset.motionState==='closing')return;
    const style=getComputedStyle(menu),start={opacity:style.opacity,transform:style.transform,clipPath:style.clipPath==='none'?openedFrame.clipPath:style.clipPath};
    cancelMotion(menu);expanded(menu,false);menu.inert=true;menu.dataset.motionState='closing';
-   if(reducedMotion.matches){menu.hidden=true;menu.inert=false;delete menu.dataset.motionState;return;}
-   const animation=menu.animate([start,closedFrame(menu)],{duration:220,easing:'cubic-bezier(.4,0,.6,1)',fill:'both'});menuMotion.set(menu,animation);
+   const animation=menu.animate([start,closedFrame(menu)],{duration:900,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.hidden=true;menu.inert=false;delete menu.dataset.motionState;cancelMotion(menu);};
   }
   function hide(){closeMenu(settings);closeMenu(nav);}
   function toggle(menu,button){
    if(!menu.hidden&&menu.dataset.motionState!=='closing'){closeMenu(menu);return;}
    closeMenu(menu===nav?settings:nav);cancelMotion(menu);menu.hidden=false;menu.inert=false;expanded(menu,true);menu.dataset.motionState='opening';
-   if(reducedMotion.matches){menu.dataset.motionState='open';return;}
-   const animation=menu.animate([closedFrame(menu),openedFrame],{duration:460,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'});menuMotion.set(menu,animation);
-   [...menu.querySelectorAll('.menu-option,.popover-label,.theme-switch')].forEach((item,index)=>item.animate([{opacity:0,transform:menu===settings?'translateY(-12px)':'translateX(14px)'},{opacity:1,transform:'none'}],{duration:280,delay:60+Math.min(index*22,110),easing:'ease-out',fill:'backwards'}));
+   const animation=menu.animate([closedFrame(menu),openedFrame],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
+   [...menu.querySelectorAll('.menu-option,.popover-label,.theme-switch')].forEach((item,index)=>item.animate([{opacity:0,transform:menu===settings?'translateY(-24px)':'translateX(42px)'},{opacity:1,transform:'none'}],{duration:700,delay:120+Math.min(index*70,280),easing:'ease-in-out',fill:'backwards'}));
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.dataset.motionState='open';cancelMotion(menu);};
   }
   navButton.addEventListener('click',()=>toggle(nav,navButton));photo?.addEventListener('click',()=>toggle(settings,photo));
