@@ -146,7 +146,7 @@ app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     var admin=folder.Equals("alunos",StringComparison.OrdinalIgnoreCase);
     if(study||admin){
         var a=Current(context);
-        if(a==null){if(Path.GetExtension(relative) is ".js" or ".css" or ".json")return Error("Entre para continuar.",401);return Results.Redirect("/login/index.html?returnUrl="+Uri.EscapeDataString("/"+relative));}
+        if(a==null){if(Path.GetExtension(relative) is ".js" or ".css" or ".json")return Error("Entre para continuar.",401);return Results.Redirect("/login/index.html?returnUrl="+Uri.EscapeDataString("/"+relative+context.Request.QueryString.Value));}
         if(admin&&a.Role!="admin")return Error("Acesso restrito ao professor.",403);
         if(folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)&&a.Role=="admin"){if(Path.GetExtension(relative) is ".js" or ".css")return Error("Use o painel do professor.",403);return Results.Redirect("/alunos/index.html");}
     } else if(relative is not ("." or "index.html" or "config.js")&&!publicFolders.Contains(folder))return Results.NotFound();

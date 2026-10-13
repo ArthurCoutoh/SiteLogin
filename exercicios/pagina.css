@@ -13,3 +13,6 @@ main.exercise-detail{padding-top:112px;padding-bottom:160px;max-width:950px}.exe
 .difficulty-badge[data-difficulty="very-hard"]{background:#a18af5;color:#160c32}
 .exercise-dock{overflow-x:auto;overflow-y:hidden;justify-content:flex-start}
 .exercise-dock .exercise-number[data-difficulty="very-hard"]{--number-color:#a18af5}
+
+.exercise-submit-action{display:flex;justify-content:center;margin-top:36px;padding-top:28px;border-top:1px solid var(--border,#ffffff22)}
+.exercise-submit-action .nav-button{padding:14px 24px;text-align:center}

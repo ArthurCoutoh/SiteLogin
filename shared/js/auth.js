@@ -83,6 +83,14 @@ window.PortfolioAuth=(()=>{
    form.addEventListener('submit',async e=>{e.preventDefault();const button=form.querySelector('button[type=submit]'),message=form.querySelector('.settings-message');button.disabled=true;try{const data=await request('/api/profile',{method:'POST',body:{name:form.elements.name.value,biography:form.elements.biography.value,avatar:pendingAvatar,removeAvatar:form.elements.removeAvatar.checked,discoverable:form.elements.discoverable.checked,acceptTerms:form.elements.acceptTerms.checked}});await reload();message.textContent=data.message;}catch(e){message.textContent=e.message;}finally{button.disabled=false;}});
    privacyForm.addEventListener('submit',async e=>{e.preventDefault();const button=privacyForm.querySelector('button'),message=privacyForm.querySelector('.settings-message');button.disabled=true;try{const data=await request('/api/profile/privacy',{method:'POST',body:{shareWithTeacher:privacyForm.elements.shareWithTeacher.checked,acceptTerms:privacyForm.elements.acceptTerms.checked}});await reload();message.textContent=data.message;}catch(e){message.textContent=e.message;}finally{button.disabled=false;}});
   }else if(theme){theme.hidden=false;nav.append(node('p','Tema','popover-label'),theme);}
+  const exerciseMatch=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);
+  const documentCard=document.querySelector('.exercise-document');
+  if(profile?.role==='student'&&exerciseMatch&&documentCard){
+   const action=node('div',undefined,'exercise-submit-action');
+   const link=node('a','Enviar minha solução','nav-button nav-exercises');
+   link.href='/entregas/index.html?exercicio='+Number(exerciseMatch[1]);
+   action.append(link);documentCard.append(action);
+  }
   outer.classList.add('shell-ready');return profile;
  }
  const ready=controls();return {request,returnPath,logout,ready,openProfile:()=>openProfile?.(),openPrivacy:()=>openPrivacy?.(),resetCsrf:()=>{csrfToken=null;}};
