@@ -1,0 +1,56 @@
+name: Compilar e testar login
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  login-mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-only-not-production
+          MYSQL_DATABASE: portfolio
+          MYSQL_USER: portfolio_app
+          MYSQL_PASSWORD: ci-database-only-not-production
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      MYSQLHOST: 127.0.0.1
+      MYSQLPORT: 3306
+      MYSQLUSER: portfolio_app
+      MYSQLPASSWORD: ci-database-only-not-production
+      MYSQLDATABASE: portfolio
+      MYSQL_SSL_MODE: Disabled
+      ADMIN_EMAIL: teacher@example.com
+      ADMIN_PASSWORD: ci-admin-only-not-production-123
+      TEST_ADMIN_EMAIL: teacher@example.com
+      TEST_ADMIN_PASSWORD: ci-admin-only-not-production-123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Compilar servidor
+        run: dotnet build backend/Portfolio.Api.csproj -c Release
+      - name: Iniciar servidor de teste
+        run: |
+          dotnet run --project backend -c Release --no-build --urls http://localhost:8080 > /tmp/portfolio-test.log 2>&1 &
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://localhost:8080/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/portfolio-test.log
+          exit 1
+      - name: Testar cadastro, liberação e proteção
+        run: python3 backend/tests/login_flow.py http://localhost:8080
