@@ -57,7 +57,7 @@ public sealed class Db
     public async Task Initialize(IConfiguration config, IPasswordHasher<Account> hasher)
     {
         var file=Path.Combine(AppContext.BaseDirectory,"schema.sql");
-        foreach(var sql in (await File.ReadAllTextAsync(file)).Split(';',StringSplitOptions.RemoveEmptyEntries)) await Execute(sql);
+        foreach(var sql in (await File.ReadAllTextAsync(file)).Split(';',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Trim()).Where(x=>!string.IsNullOrWhiteSpace(x))) await Execute(sql);
         await using var c=await Open();await using var count=Command(c,"SELECT COUNT(*) FROM users WHERE role='admin'");
         if(Convert.ToInt64(await count.ExecuteScalarAsync())==0)
         {
