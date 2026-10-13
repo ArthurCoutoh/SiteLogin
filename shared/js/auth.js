@@ -49,15 +49,15 @@ window.PortfolioAuth=(()=>{
    if(menu.hidden||menu.dataset.motionState==='closing')return;
    const style=getComputedStyle(menu),start={opacity:style.opacity,transform:style.transform,clipPath:style.clipPath==='none'?openedFrame.clipPath:style.clipPath};
    cancelMotion(menu);expanded(menu,false);menu.inert=true;menu.dataset.motionState='closing';
-   const animation=menu.animate([start,closedFrame(menu)],{duration:900,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
+   const animation=menu.animate([start,closedFrame(menu)],{duration:600,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.hidden=true;menu.inert=false;delete menu.dataset.motionState;cancelMotion(menu);};
   }
   function hide(){closeMenu(settings);closeMenu(nav);}
   function toggle(menu,button){
    if(!menu.hidden&&menu.dataset.motionState!=='closing'){closeMenu(menu);return;}
    closeMenu(menu===nav?settings:nav);cancelMotion(menu);menu.hidden=false;menu.inert=false;expanded(menu,true);menu.dataset.motionState='opening';
-   const animation=menu.animate([closedFrame(menu),openedFrame],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
-   [...menu.querySelectorAll('.menu-option,.popover-label,.theme-switch')].forEach((item,index)=>item.animate([{opacity:0,transform:menu===settings?'translateY(-24px)':'translateX(42px)'},{opacity:1,transform:'none'}],{duration:700,delay:120+Math.min(index*70,280),easing:'ease-in-out',fill:'backwards'}));
+   const animation=menu.animate([closedFrame(menu),openedFrame],{duration:600,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
+   [...menu.querySelectorAll('.menu-option,.popover-label,.theme-switch')].forEach((item,index)=>item.animate([{opacity:0,transform:menu===settings?'translateY(-24px)':'translateX(42px)'},{opacity:1,transform:'none'}],{duration:360,delay:60+Math.min(index*30,150),easing:'ease-in-out',fill:'backwards'}));
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.dataset.motionState='open';cancelMotion(menu);};
   }
   navButton.addEventListener('click',()=>toggle(nav,navButton));photo?.addEventListener('click',()=>toggle(settings,photo));
