@@ -8,3 +8,7 @@
 
 .menu-card-contact,.menu-card-contact:hover{background:var(--easy);border-color:var(--easy);color:#000}
 .menu-card-contact p,.menu-card-contact .menu-number,.menu-card-contact .card-arrow{color:#000}
+
+/* Centered introduction without the large portrait. */
+.menu-intro{display:flex;justify-content:center;padding:40px 0 55px}.menu-copy{width:100%;max-width:900px;margin-inline:auto;text-align:center}.menu-copy .hero-description{max-width:640px;margin-inline:auto}
+@media(max-width:650px){.menu-intro{padding:20px 0 40px}}
