@@ -2,6 +2,7 @@
 import getpass
 import http.cookiejar
 import json
+import os
 import secrets
 import sys
 import urllib.error
@@ -29,8 +30,8 @@ class Client:
         try:
             with self.opener.open(req,timeout=25) as response:return response.status,response.read().decode()
         except urllib.error.HTTPError as response:return response.code,response.read().decode()
-admin_email=input('E-mail do professor: ').strip()
-admin_password=getpass.getpass('Senha do professor (não será exibida): ')
+admin_email=os.environ.get('TEST_ADMIN_EMAIL') or input('E-mail do professor: ').strip()
+admin_password=os.environ.get('TEST_ADMIN_PASSWORD') or getpass.getpass('Senha do professor (não será exibida): ')
 student=Client();teacher=Client();anon=Client()
 email='teste-'+secrets.token_hex(6)+'@example.com';password=secrets.token_urlsafe(20)
 for path in ['/exercicios/index.html','/apoio/index.html','/exercicios/exercicio-30/index.html']:
