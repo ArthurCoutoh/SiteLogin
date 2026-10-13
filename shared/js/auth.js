@@ -14,7 +14,7 @@ window.PortfolioAuth=(()=>{
  }
  function returnPath(){
   const value=new URLSearchParams(location.search).get('returnUrl');
-  try{const url=new URL(value||'/exercicios/index.html',location.origin);if(url.origin===location.origin&&(url.pathname.startsWith('/exercicios/')||url.pathname.startsWith('/apoio/')||url.pathname.startsWith('/entregas/')||url.pathname.startsWith('/amigos/')))return url.pathname+url.search;}catch{}
+  try{const url=new URL(value||'/exercicios/index.html',location.origin);if(url.origin===location.origin&&(url.pathname.startsWith('/exercicios/')||url.pathname.startsWith('/apoio/')||url.pathname.startsWith('/entregas/')||url.pathname.startsWith('/amigos/')||url.pathname.startsWith('/mensagens/')))return url.pathname+url.search;}catch{}
   return '/exercicios/index.html';
  }
  async function logout(){csrfToken=null;await request('/api/auth/logout',{method:'POST',body:{}});location.assign('/login/index.html');}
@@ -44,8 +44,8 @@ window.PortfolioAuth=(()=>{
   function toggle(menu,button){const visible=menu.hidden;hide();menu.hidden=!visible;button.setAttribute('aria-expanded',String(visible));}
   navButton.addEventListener('click',()=>toggle(nav,navButton));photo?.addEventListener('click',()=>toggle(settings,photo));
   document.addEventListener('click',e=>{if(!outer.contains(e.target))hide();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
-  for(const [label,url,cls]of [['Menu principal','/index.html',''],['Minha vida','/sobre/index.html',''],['Meu foco','/foco/index.html',''],['Além do código','/alem-do-codigo/index.html',''],['Exercícios','/exercicios/index.html','nav-exercises'],['Apoio','/apoio/index.html','nav-support'],['Contato','/contato/index.html','nav-contact-green']]){const link=node('a',label,'menu-option '+cls);link.href=url;nav.append(link);}
-  if(profile){const social=node('a','Amigos e mensagens','menu-option');social.href='/amigos/index.html';nav.append(social);const deliveries=node('a',profile.role==='admin'?'Painel do professor':'Minhas entregas','menu-option');const ex=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);deliveries.href=profile.role==='admin'?'/alunos/index.html':'/entregas/index.html'+(ex?'?exercicio='+ex[1]:'');nav.append(deliveries);}
+  for(const [label,url,cls]of [['Menu principal','/index.html',''],['Exercícios','/exercicios/index.html','nav-exercises'],['Apoio','/apoio/index.html','nav-support'],['Contato','/contato/index.html','nav-contact-green']]){const link=node('a',label,'menu-option '+cls);link.href=url;nav.append(link);}
+  if(profile){for(const [label,url]of [['Amigos','/amigos/index.html'],['Mensagens','/mensagens/index.html']]){const social=node('a',label,'menu-option');social.href=url;nav.append(social);}const deliveries=node('a',profile.role==='admin'?'Painel do professor':'Minhas entregas','menu-option');const ex=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);deliveries.href=profile.role==='admin'?'/alunos/index.html':'/entregas/index.html'+(ex?'?exercicio='+ex[1]:'');nav.append(deliveries);}
   else {const login=node('a','Entrar / criar conta','menu-option');login.href='/login/index.html';nav.append(login);}
   function dialog(title,content){const d=node('dialog',undefined,'settings-dialog');d.innerHTML=content;d.setAttribute('aria-label',title);const top=node('div',undefined,'dialog-top');top.append(node('h2',title));const close=option('×',()=>d.close(),top,'dialog-close');close.setAttribute('aria-label','Fechar configurações');d.prepend(top);document.body.append(d);d.addEventListener('click',e=>{if(e.target===d)d.close();});return d;}
   if(profile){

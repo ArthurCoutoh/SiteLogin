@@ -39,11 +39,11 @@ Em **Editar perfil**, você pode mudar o nome, escrever uma biografia de até 60
 
 ## Amigos e mensagens
 
-1. Abra **☰ → Amigos e mensagens**.
+1. Abra **☰ → Amigos**.
 2. Para receber pedidos, abra **Editar perfil** e marque **Permitir que outras pessoas me encontrem pelo nome**. Essa opção começa desmarcada.
 3. Busque alguém por pelo menos dois caracteres do nome. Somente pessoas que autorizaram a busca aparecem; e-mails e entregas não são exibidos.
 4. Envie um pedido. A outra pessoa precisa aceitar em **Pedidos** antes que mensagens sejam permitidas.
-5. Em **Amigos**, escolha **Conversar**. Mensagens têm até 2.000 caracteres e atualizam automaticamente enquanto a página estiver visível. Use **Carregar mensagens anteriores** para consultar o histórico mais antigo.
+5. Em **Amigos**, escolha **Conversar** para abrir a página **Mensagens**, ou abra **☰ → Mensagens** e selecione um amigo. Mensagens têm até 2.000 caracteres e atualizam automaticamente enquanto a página estiver visível. Use **Carregar mensagens anteriores** para consultar o histórico mais antigo.
 6. Nos três pontinhos da conversa, você pode desfazer a amizade ou bloquear a pessoa. Bloquear impede novos pedidos e mensagens; **Bloqueados** permite desbloquear. Após recusar um pedido, o remetente precisa aguardar 24 horas para tentar novamente.
 
 O histórico é mantido no MySQL e fica indisponível quando a amizade é desfeita ou bloqueada. Uma nova amizade aceita pode reabrir esse histórico. A interface e a API só permitem ler a própria conversa; nem o painel de professor tem acesso às conversas entre outros usuários. Não há criptografia ponta a ponta, e o administrador da infraestrutura tem acesso técnico ao banco. Os termos explicam essa diferença.

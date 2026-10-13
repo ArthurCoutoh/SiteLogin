@@ -8,6 +8,7 @@ def expect(c,path,body=None,status=200):
     return json.loads(text) if text.startswith(('{','[')) else text
 anon=Client();teacher=Client()
 expect(anon,'/amigos/index.html',status=302)
+expect(anon,'/mensagens/index.html',status=302)
 expect(anon,'/api/people?q=Teste',status=401)
 expect(anon,'/api/friends',status=401)
 expect(teacher,'/api/auth/login',{'email':os.environ['TEST_ADMIN_EMAIL'],'password':os.environ['TEST_ADMIN_PASSWORD']})
