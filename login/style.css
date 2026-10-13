@@ -30,3 +30,20 @@ body[data-social-view=friends] .friends-layout{grid-template-columns:minmax(0,1f
 
 /* JS controls the complete opening and closing lifecycle before applying hidden. */
 .profile-popover{transform-origin:top left}.navigation-popover{transform-origin:top right}.shell-popover{animation:none!important}.shell-popover[data-motion-state=opening],.shell-popover[data-motion-state=closing]{will-change:transform,opacity,clip-path}.shell-popover[data-motion-state=closing]{pointer-events:none}.avatar-trigger[aria-expanded=true],.hamburger-trigger[aria-expanded=true]{border-color:var(--red);box-shadow:0 0 0 3px #ff354a12}
+
+/* Shared button palette for both themes. */
+:root{--control-bg:#0b0b0d;--control-ink:#f5f4f5;--control-border:#615b64;--action-red:#ff354a;--action-blue:#4285f4;--action-green:#15d260;--action-ink:#000}
+html[data-theme="light"]{--control-bg:#fff;--control-ink:#171717;--control-border:#88818b;--action-red:#b51c31;--action-blue:#185abb;--action-green:#087c36;--action-ink:#fff}
+html body :is(.nav-button,.back-menu,.button,.copy-button,.account-link,.auth-tabs button,.student-actions button,.friend-action,.friends-tabs button,.exercise-pagination button,.signal-tabs button,.theme-switch button,.avatar-trigger,.hamburger-trigger,.dots-button,.dialog-close,.menu-option,.text-button,.friend-options button){
+ background-color:var(--control-bg)!important;color:var(--control-ink)!important;border-color:var(--control-border)!important;
+}
+html body :is(.nav-exercises,.auth-submit,.button-primary,.auth-tabs button[aria-selected="true"],.friends-tabs button[aria-selected="true"],.exercise-pagination button[aria-current="page"],.signal-tabs button[aria-selected="true"],.nav-button.is-current){
+ background-color:var(--action-red)!important;color:var(--action-ink)!important;border-color:var(--action-red)!important;
+}
+html body :is(.nav-support,.account-panel-links a),html body :is(.nav-button,.menu-option).nav-support{background-color:var(--action-blue)!important;color:var(--action-ink)!important;border-color:var(--action-blue)!important}
+html body .account-panel-links a:first-child{background-color:var(--action-red)!important;border-color:var(--action-red)!important}
+html body :is(.nav-button,.menu-option).nav-contact-green{background-color:var(--action-green)!important;color:var(--action-ink)!important;border-color:var(--action-green)!important}
+html body .theme-switch button[aria-pressed="true"]{background-color:var(--control-ink)!important;color:var(--control-bg)!important}
+.exercise-submit-action .nav-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 24px;border:1px solid var(--action-red);border-radius:8px;font-weight:700;text-decoration:none}
+html body :is(button,.button,.nav-button,.back-menu,.account-link,.menu-option):focus-visible{outline:3px solid var(--control-ink);outline-offset:4px}
+@media(hover:hover){.exercise-submit-action .nav-button:hover{transform:translateY(-2px);filter:brightness(1.08)}}
