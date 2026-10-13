@@ -9,7 +9,7 @@ using MySqlConnector;
 var builder=WebApplication.CreateBuilder(args);
 var port=builder.Configuration["PORT"];
 if(!string.IsNullOrWhiteSpace(port))builder.WebHost.UseUrls($"http://0.0.0.0:{int.Parse(port)}");
-builder.WebHost.ConfigureKestrel(o=>o.Limits.MaxRequestBodySize=16384);
+builder.WebHost.ConfigureKestrel(o=>o.Limits.MaxRequestBodySize=131072);
 builder.Services.AddSingleton<Db>();
 builder.Services.AddSingleton<IPasswordHasher<Account>,PasswordHasher<Account>>();
 builder.Services.Configure<PasswordHasherOptions>(o=>o.IterationCount=210000);
@@ -28,7 +28,7 @@ await db.Initialize(app.Configuration,hasher);
 var dummy=new Account(0,"","","","student","blocked",0,null);
 var dummyHash=hasher.HashPassword(dummy,Convert.ToHexString(RandomNumberGenerator.GetBytes(32)));
 var siteRoot=Path.GetFullPath(app.Configuration["SiteRoot"]??Path.Combine(app.Environment.ContentRootPath,".."));
-var publicFolders=new HashSet<string>(["menu","sobre","foco","alem-do-codigo","contato","assets","shared","login"],StringComparer.OrdinalIgnoreCase);
+var publicFolders=new HashSet<string>(["menu","sobre","foco","alem-do-codigo","contato","assets","shared","login","termos"],StringComparer.OrdinalIgnoreCase);
 var fileTypes=new FileExtensionContentTypeProvider();
 CookieOptions SessionCookie()=>new(){HttpOnly=true,Secure=!app.Environment.IsDevelopment(),SameSite=SameSiteMode.Lax,Path="/",IsEssential=true,MaxAge=TimeSpan.FromHours(8)};
 Account? Current(HttpContext c)=>c.Items["account"] as Account;
@@ -65,13 +65,16 @@ app.MapGet("/api/auth/csrf",(HttpContext context,IAntiforgery antiforgery)=>Resu
 app.MapGet("/api/auth/me",(HttpContext c)=>Current(c) is Account a?Results.Ok(new{id=a.Id,name=a.Name,email=a.Email,role=a.Role}):Error("Entre para continuar.",401));
 app.MapPost("/api/auth/register",async(RegisterRequest input)=>{
     var email=Input.Email(input.Email);var name=input.Name?.Trim();
+    if(!input.AcceptTerms)return Error("Aceite os termos de uso para criar sua conta.");
     if(email==null||string.IsNullOrWhiteSpace(name)||name.Length>100||name.Any(char.IsControl)||!Input.Password(input.Password))
         return Error("Informe nome, e-mail válido e senha de 12 a 128 caracteres.");
-    var account=new Account(0,name,email,"","student","pending",0,null);
-    try{await db.Execute("INSERT INTO users(name,email,password_hash) VALUES(@name,@email,@hash)",
-        ("@name",name),("@email",email),("@hash",hasher.HashPassword(account,input.Password!)));}
-    catch(MySqlException e) when(e.Number==1062){/* Same response for an existing address. */}
-    return Results.Ok(new{message="Solicitação recebida. Aguarde a aprovação do professor. Se você já possui conta, use Entrar."});
+    var account=new Account(0,name,email,"","student","active",0,null);
+    try{
+        await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
+        await using var q=Db.Command(c,"INSERT INTO users(name,email,password_hash,status) VALUES(@name,@email,@hash,'active')",("@name",name),("@email",email),("@hash",hasher.HashPassword(account,input.Password!)));q.Transaction=tx;await q.ExecuteNonQueryAsync();
+        await using var settings=Db.Command(c,"INSERT INTO user_settings(user_id,terms_version,accepted_at) VALUES(@id,@version,UTC_TIMESTAMP())",("@id",q.LastInsertedId),("@version",Portal.TermsVersion));settings.Transaction=tx;await settings.ExecuteNonQueryAsync();await tx.CommitAsync();
+    }catch(MySqlException e) when(e.Number==1062){/* Avoid revealing whether an address exists. */}
+    return Results.Ok(new{message="Cadastro recebido. Você já pode entrar. Se já possui conta, use sua senha atual."});
 }).RequireRateLimiting("auth");
 app.MapPost("/api/auth/login",async(LoginRequest input,HttpContext context)=>{
     var email=Input.Email(input.Email);
@@ -89,7 +92,7 @@ app.MapPost("/api/auth/login",async(LoginRequest input,HttpContext context)=>{
         await using var fail=Db.Command(connection,"UPDATE users SET failed_attempts=@fail, locked_until=@until WHERE id=@id",("@fail",failures),("@until",failures>=5?DateTime.UtcNow.AddMinutes(15):null),("@id",account.Id));fail.Transaction=tx;
         await fail.ExecuteNonQueryAsync();await tx.CommitAsync();return Error("E-mail ou senha inválidos.",401);
     }
-    if(account.Status!="active")return Error("Sua conta aguarda aprovação ou está bloqueada. Entre em contato com o professor.",403);
+    if(account.Status!="active")return Error("Sua conta está bloqueada. Entre em contato com o professor.",403);
     var hash=check==PasswordVerificationResult.SuccessRehashNeeded?hasher.HashPassword(account,input.Password):account.Hash;
     await using var reset=Db.Command(connection,"UPDATE users SET failed_attempts=0,locked_until=NULL,password_hash=@hash WHERE id=@id",("@hash",hash),("@id",account.Id));reset.Transaction=tx;await reset.ExecuteNonQueryAsync();
     var token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -103,6 +106,7 @@ app.MapPost("/api/auth/logout",async(HttpContext context)=>{
 });
 app.MapPost("/api/auth/password",async(PasswordRequest input,HttpContext context)=>{
     var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+    if(a.Role!="admin")return Error("Solicite ao professor a autorização para trocar a senha.",403);
     if(input.CurrentPassword is not {Length: >0 and <=128}||!Input.Password(input.NewPassword))return Error("A nova senha deve ter de 12 a 128 caracteres.");
     if(hasher.VerifyHashedPassword(a,a.Hash,input.CurrentPassword)==PasswordVerificationResult.Failed)return Error("Senha atual incorreta.");
     await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
@@ -118,7 +122,7 @@ app.MapGet("/api/admin/students",async(HttpContext context)=>{
 });
 app.MapPost("/api/admin/students/{id:long}/status",async(long id,StatusRequest input,HttpContext context)=>{
     if(Current(context)?.Role!="admin")return Error("Acesso restrito ao professor.",403);
-    if(input.Status is not ("active" or "blocked" or "pending"))return Error("Status inválido.");
+    if(input.Status is not ("active" or "blocked"))return Error("Status inválido.");
     await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
     await using var q=Db.Command(c,"UPDATE users SET status=@status WHERE id=@id AND role='student'",("@status",input.Status),("@id",id));q.Transaction=tx;await q.ExecuteNonQueryAsync();
     await using var exists=Db.Command(c,"SELECT COUNT(*) FROM users WHERE id=@id AND role='student'",("@id",id));exists.Transaction=tx;
@@ -126,6 +130,7 @@ app.MapPost("/api/admin/students/{id:long}/status",async(long id,StatusRequest i
     await using var revoke=Db.Command(c,"DELETE FROM sessions WHERE user_id=@id",("@id",id));revoke.Transaction=tx;await revoke.ExecuteNonQueryAsync();await tx.CommitAsync();
     return Results.Ok(new{message="Acesso atualizado."});
 });
+Portal.Map(app,db,hasher);
 // No public static-file middleware: authorization happens BEFORE reading study files.
 app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     if((path??"").Contains('\\'))return Results.NotFound();
@@ -135,7 +140,7 @@ app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     var relative=Path.GetRelativePath(siteRoot,full).Replace('\\','/');
     if(relative!="."&&relative.Split('/').Any(part=>part.StartsWith('.')))return Results.NotFound();
     var folder=relative.Split('/')[0];
-    var study=folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
+    var study=folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)||folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
     var admin=folder.Equals("alunos",StringComparison.OrdinalIgnoreCase);
     if(study||admin){
         var a=Current(context);

@@ -30,43 +30,88 @@ class Client:
         try:
             with self.opener.open(req,timeout=25) as response:return response.status,response.read().decode()
         except urllib.error.HTTPError as response:return response.code,response.read().decode()
+
 admin_email=os.environ.get('TEST_ADMIN_EMAIL') or input('E-mail do professor: ').strip()
-admin_password=os.environ.get('TEST_ADMIN_PASSWORD') or getpass.getpass('Senha do professor (não será exibida): ')
-student=Client();teacher=Client();anon=Client()
+admin_password=os.environ.get('TEST_ADMIN_PASSWORD') or getpass.getpass('Senha do professor: ')
+student=Client();teacher=Client();anon=Client();other=Client()
 email='teste-'+secrets.token_hex(6)+'@example.com';password=secrets.token_urlsafe(20)
-for path in ['/exercicios/index.html','/apoio/index.html','/exercicios/exercicio-30/index.html']:
-    assert anon.call(path)[0]==302,path
-assert anon.call('/exercicios/atividades.js')[0]==401
-assert anon.call('/backend/schema.sql')[0]==404
-assert anon.call('/.env')[0]==404
-assert anon.call('/index.html')[0]==200
-assert anon.call('/api/admin/students')[0]==403
-assert student.call('/api/auth/register',{'name':'Teste temporário','email':email,'password':password})[0]==200
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==403
-assert teacher.call('/api/auth/login',{'email':admin_email,'password':admin_password})[0]==200,'Login do professor falhou.'
-code,body=teacher.call('/api/admin/students');assert code==200
-account=next(x for x in json.loads(body) if x['email']==email);uid=account['id']
-assert teacher.call(f'/api/admin/students/{uid}/status',{'status':'active'})[0]==200
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==200
-for path in ['/exercicios/index.html','/apoio/index.html','/exercicios/exercicio-30/index.html','/exercicios/atividades.js']:
-    assert student.call(path)[0]==200,path
+def expect(client,path,body=None,status=200,csrf=True):
+    code,data=client.call(path,body,csrf)
+    assert code==status,(path,code,data)
+    return json.loads(data) if data.startswith(('{','[')) else data
+for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-30/index.html']:
+    expect(anon,path,status=302)
+expect(anon,'/exercicios/atividades.js',status=401)
+for path in ['/backend/schema.sql','/.env']:
+    expect(anon,path,status=404)
+for path in ['/index.html','/termos/index.html','/login/index.html']:
+    expect(anon,path)
+expect(anon,'/api/admin/students',status=403)
+expect(anon,'/api/teacher/submissions',status=403)
+expect(anon,'/api/submissions',status=401)
+registration={'name':'Teste temporário','email':email,'password':password}
+expect(student,'/api/auth/register',registration,status=400)
+registration['acceptTerms']=True
+expect(student,'/api/auth/register',registration)
+expect(student,'/api/auth/login',{'email':email,'password':password})
+expect(teacher,'/api/auth/login',{'email':admin_email,'password':admin_password})
+uid=next(x['id'] for x in expect(teacher,'/api/admin/students') if x['email']==email)
+for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-30/index.html','/exercicios/atividades.js']:
+    expect(student,path)
+expect(student,'/api/admin/students',status=403)
+expect(student,'/alunos/index.html',status=403)
+profile=expect(student,'/api/profile');assert profile['acceptedTerms'] and not profile['shareWithTeacher']
+expect(student,'/api/submissions',{'exerciseNumber':31,'title':'Inválido','solution':'x'},status=400)
+expect(student,'/api/submissions',{'exerciseNumber':1,'title':'Inválido','solution':'x'*20001},status=400)
+solution='<script>alert("nunca executar")</script>\nConsole.WriteLine("oi");'
+sid=expect(student,'/api/submissions',{'exerciseNumber':1,'title':'Minha solução','solution':solution})['id']
+assert expect(student,'/api/submissions')[0]['solution']==solution
+assert all(x['id']!=sid for x in expect(teacher,'/api/teacher/submissions'))
+expect(teacher,f'/api/teacher/submissions/{sid}/feedback',{'feedback':'Não permitido'},status=404)
+expect(student,'/api/profile/privacy',{'shareWithTeacher':True})
+assert next(x for x in expect(teacher,'/api/teacher/submissions') if x['id']==sid)['solution']==solution
+expect(student,f'/api/teacher/submissions/{sid}/feedback',{'feedback':'Tentativa'},status=403)
+expect(teacher,f'/api/teacher/submissions/{sid}/feedback',{'feedback':'Bom começo! Reveja a validação.'})
+assert expect(student,'/api/submissions')[0]['feedback']=='Bom começo! Reveja a validação.'
+other_email='teste-'+secrets.token_hex(6)+'@example.com'
+expect(other,'/api/auth/register',{'name':'Outro aluno','email':other_email,'password':password,'acceptTerms':True})
+expect(other,'/api/auth/login',{'email':other_email,'password':password})
+assert expect(other,'/api/submissions')==[]
+expect(other,f'/api/submissions/{sid}/delete',{},status=404)
+expect(student,'/api/profile/privacy',{'shareWithTeacher':False})
+assert all(x['id']!=sid for x in expect(teacher,'/api/teacher/submissions'))
+expect(teacher,f'/api/teacher/submissions/{sid}/feedback',{'feedback':'Sem permissão'},status=404)
 new_password=secrets.token_urlsafe(20)
-assert student.call('/api/auth/password',{'currentPassword':password,'newPassword':new_password})[0]==200
-assert student.call('/api/auth/me')[0]==401
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==401
+expect(student,'/api/auth/password',{'currentPassword':password,'newPassword':new_password},status=403)
+expect(anon,'/api/auth/password-request',{'email':email},csrf=False,status=400)
+expect(anon,'/api/auth/password-request',{'email':email})
+expect(anon,'/api/auth/password-request',{'email':email})
+requests=[x for x in expect(teacher,'/api/admin/password-requests') if x['email']==email];assert len(requests)==1
+rid=requests[0]['id']
+expect(student,f'/api/admin/password-requests/{rid}/decision',{'decision':'approved'},status=403)
+expect(anon,'/api/auth/password-reset',{'email':email,'code':'0'*32,'newPassword':new_password},status=400)
+code=expect(teacher,f'/api/admin/password-requests/{rid}/decision',{'decision':'approved'})['code']
+assert len(code)==32
+for item in expect(teacher,'/api/admin/password-requests'):
+    assert 'tokenHash' not in item and 'code' not in item
+expect(anon,'/api/auth/password-reset',{'email':other_email,'code':code,'newPassword':new_password},status=400)
+expect(anon,'/api/auth/password-reset',{'email':email,'code':code,'newPassword':new_password})
+expect(student,'/api/auth/me',status=401)
+expect(anon,'/api/auth/password-reset',{'email':email,'code':code,'newPassword':password},status=400)
+expect(student,'/api/auth/login',{'email':email,'password':password},status=401)
 password=new_password
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==200
-assert student.call('/api/admin/students')[0]==403
-assert student.call('/alunos/index.html')[0]==403
-assert student.call('/api/auth/logout',{},csrf=False)[0]==400,'Logout sem CSRF deveria falhar.'
-assert student.call('/api/auth/me')[0]==200
-assert student.call('/api/auth/logout',{})[0]==200
-assert student.call('/exercicios/index.html')[0]==302
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==200
-assert teacher.call(f'/api/admin/students/{uid}/status',{'status':'blocked'})[0]==200
-assert student.call('/api/auth/me')[0]==401
-assert student.call('/apoio/index.html')[0]==302
-assert student.call('/api/auth/login',{'email':email,'password':password})[0]==403
-assert teacher.call('/api/auth/logout',{})[0]==200
-print('PASS: public portfolio, protected HTML/JS, pending signup, admin approval, student permissions, CSRF, logout and revoked access.')
-print('Conta de teste bloqueada:',email)
+expect(student,'/api/auth/login',{'email':email,'password':password})
+expect(student,'/api/auth/logout',{},csrf=False,status=400)
+expect(student,'/api/auth/me')
+expect(student,'/api/auth/logout',{})
+expect(student,'/exercicios/index.html',status=302)
+expect(student,'/api/auth/login',{'email':email,'password':password})
+expect(student,f'/api/submissions/{sid}/delete',{})
+assert expect(student,'/api/submissions')==[]
+expect(teacher,f'/api/admin/students/{uid}/status',{'status':'pending'},status=400)
+expect(teacher,f'/api/admin/students/{uid}/status',{'status':'blocked'})
+expect(student,'/api/auth/me',status=401)
+expect(student,'/apoio/index.html',status=302)
+expect(student,'/api/auth/login',{'email':email,'password':password},status=403)
+expect(teacher,'/api/auth/logout',{})
+print('PASS: portal MySQL, terms, immediate signup, roles, private submissions, consent/revocation, feedback, isolation, authorized one-use password reset, CSRF and bans.')

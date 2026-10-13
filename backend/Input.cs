@@ -20,6 +20,6 @@ public static class Input
     }
 }
 public record LoginRequest(string? Email,string? Password);
-public record RegisterRequest(string? Name,string? Email,string? Password);
+public record RegisterRequest(string? Name,string? Email,string? Password,bool AcceptTerms=false);
 public record StatusRequest(string? Status);
 public record PasswordRequest(string? CurrentPassword,string? NewPassword);

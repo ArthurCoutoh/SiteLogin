@@ -68,5 +68,6 @@ public sealed class Db
                 ("@name",user.Name),("@email",email),("@hash",hasher.HashPassword(user,password)));
         }
         await Execute("DELETE FROM sessions WHERE expires_at<=UTC_TIMESTAMP()");
+        await Execute("UPDATE users SET status='active' WHERE role='student' AND status='pending'");
     }
 }

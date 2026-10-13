@@ -1,7 +1,7 @@
-name: Compilar e testar login
+name: Compilar e testar portal
 on:
   push:
-    branches: [main]
+    branches: [main, student-portal]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -52,5 +52,5 @@ jobs:
           done
           cat /tmp/portfolio-test.log
           exit 1
-      - name: Testar cadastro, liberação e proteção
+      - name: Testar portal, privacidade e recuperação
         run: python3 backend/tests/login_flow.py http://localhost:8080
