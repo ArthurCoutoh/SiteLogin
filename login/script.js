@@ -2,8 +2,17 @@
 (()=>{
  const api=window.PortfolioAuth,message=document.getElementById('auth-message');
  const login=document.getElementById('login-form'),register=document.getElementById('register-form'),password=document.getElementById('password-form'),recovery=document.getElementById('recovery-panel');
+ const passwordToggles=[];
+ document.querySelectorAll('input[type="password"]').forEach((input,index)=>{
+  const wrapper=document.createElement('span');wrapper.className='password-field';input.before(wrapper);wrapper.append(input);if(!input.id)input.id='auth-password-'+index;
+  const button=document.createElement('button');button.type='button';button.className='password-toggle';button.setAttribute('aria-controls',input.id);
+  function render(visible){input.type=visible?'text':'password';button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha');button.title=visible?'Ocultar senha':'Mostrar senha';button.setAttribute('aria-pressed',String(visible));button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'+(visible?'<path d="m3 3 18 18"/>':'')+'</svg>';}
+  render(false);wrapper.append(button);passwordToggles.push(()=>render(false));
+  button.addEventListener('click',()=>{const start=input.selectionStart,end=input.selectionEnd;render(input.type==='password');input.focus();if(start!==null&&end!==null)input.setSelectionRange(start,end);});
+  input.form?.addEventListener('reset',()=>render(false));
+ });
  function notify(text,error=false){message.textContent=text;message.classList.toggle('is-error',error);}
- function mode(value){login.hidden=value!=='login';register.hidden=value!=='register';recovery.hidden=value!=='request';document.querySelectorAll('[role="tab"]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.authTab===value)));notify('');}
+ function mode(value){passwordToggles.forEach(hide=>hide());login.hidden=value!=='login';register.hidden=value!=='register';recovery.hidden=value!=='request';document.querySelectorAll('[role="tab"]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.authTab===value)));notify('');}
  for(const button of document.querySelectorAll('[data-auth-tab]'))button.addEventListener('click',()=>mode(button.dataset.authTab));
  async function submit(form,path,body,after){const button=form.querySelector('button[type="submit"]');button.disabled=true;notify('Aguarde…');try{const data=await api.request(path,{method:'POST',body});form.reset();notify(data.message);if(after)await after(data);}catch(e){notify(e.message,true);}finally{button.disabled=false;}}
  login.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(login);submit(login,'/api/auth/login',{email:f.get('email'),password:f.get('password')},()=>location.assign(api.returnPath()));});
