@@ -21,6 +21,16 @@ window.PortfolioAuth=(()=>{
 
  let profile=null,openProfile,openPrivacy;
  function node(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
+ function showPrivacyConfirmation(){
+  document.querySelector('.privacy-confirmation')?.remove();
+  const notice=node('div','Entrega realizada','privacy-confirmation');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');document.body.append(notice);
+  const animation=notice.animate([
+   {transform:'translate(-50%, -150%)',opacity:0,offset:0,easing:'cubic-bezier(.2,.7,.2,1)'},
+   {transform:'translate(-50%, 0)',opacity:1,offset:600/2100},
+   {transform:'translate(-50%, 0)',opacity:1,offset:1600/2100,easing:'cubic-bezier(.4,0,.8,.3)'},
+   {transform:'translate(-50%, -150%)',opacity:0,offset:1}
+  ],{duration:2100,fill:'both'});animation.onfinish=()=>notice.remove();
+ }
  function avatar(user,cls='profile-avatar'){const img=node('img',undefined,cls);img.alt='';img.src=user.avatar||(user.role==='admin'?'/assets/perfil.jpg':'/shared/avatar.svg');return img;}
  function option(label,action,container,cls='menu-option'){const b=node('button',label,cls);b.type='button';b.addEventListener('click',action);container.append(b);return b;}
  async function controls(){
@@ -81,7 +91,7 @@ window.PortfolioAuth=(()=>{
     try{const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'}),canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d'),size=Math.min(bitmap.width,bitmap.height);ctx.fillStyle='#fff';ctx.fillRect(0,0,256,256);ctx.drawImage(bitmap,(bitmap.width-size)/2,(bitmap.height-size)/2,size,size,0,0,256,256);bitmap.close();pendingAvatar=canvas.toDataURL('image/jpeg',.82);form.elements.removeAvatar.checked=false;const preview=avatar({...profile,avatar:pendingAvatar},'profile-preview');profileDialog.querySelector('#profile-photo-preview').replaceChildren(preview);message.textContent='Foto pronta para salvar.';}catch{message.textContent='Não foi possível abrir essa foto.';form.elements.photo.value='';}
    });
    form.addEventListener('submit',async e=>{e.preventDefault();const button=form.querySelector('button[type=submit]'),message=form.querySelector('.settings-message');button.disabled=true;try{const data=await request('/api/profile',{method:'POST',body:{name:form.elements.name.value,biography:form.elements.biography.value,avatar:pendingAvatar,removeAvatar:form.elements.removeAvatar.checked,discoverable:form.elements.discoverable.checked,acceptTerms:form.elements.acceptTerms.checked}});await reload();message.textContent=data.message;}catch(e){message.textContent=e.message;}finally{button.disabled=false;}});
-   privacyForm.addEventListener('submit',async e=>{e.preventDefault();const button=privacyForm.querySelector('button'),message=privacyForm.querySelector('.settings-message');button.disabled=true;try{const data=await request('/api/profile/privacy',{method:'POST',body:{shareWithTeacher:privacyForm.elements.shareWithTeacher.checked,acceptTerms:privacyForm.elements.acceptTerms.checked}});await reload();message.textContent=data.message;}catch(e){message.textContent=e.message;}finally{button.disabled=false;}});
+   privacyForm.addEventListener('submit',async e=>{e.preventDefault();const button=privacyForm.querySelector('button'),message=privacyForm.querySelector('.settings-message');button.disabled=true;message.textContent='';privacyDialog.close();try{await request('/api/profile/privacy',{method:'POST',body:{shareWithTeacher:privacyForm.elements.shareWithTeacher.checked,acceptTerms:privacyForm.elements.acceptTerms.checked}});showPrivacyConfirmation();await reload();}catch(e){message.textContent=e.message;if(!privacyDialog.open)privacyDialog.showModal();}finally{button.disabled=false;}});
   }else if(theme){theme.hidden=false;nav.append(node('p','Tema','popover-label'),theme);}
   const exerciseMatch=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);
   const documentCard=document.querySelector('.exercise-document');
