@@ -34,7 +34,7 @@ body[data-social-view=friends] .friends-layout{grid-template-columns:minmax(0,1f
 /* Shared button palette for both themes. */
 :root{--control-bg:#0b0b0d;--control-ink:#f5f4f5;--control-border:#615b64;--action-red:#ff354a;--action-blue:#4285f4;--action-green:#15d260;--action-ink:#000}
 html[data-theme="light"]{--control-bg:#fff;--control-ink:#171717;--control-border:#88818b;--action-red:#b51c31;--action-blue:#185abb;--action-green:#087c36;--action-ink:#fff}
-html body :is(.nav-button,.back-menu,.button,.copy-button,.account-link,.auth-tabs button,.student-actions button,.friend-action,.friends-tabs button,.exercise-pagination button,.signal-tabs button,.theme-switch button,.avatar-trigger,.hamburger-trigger,.dots-button,.dialog-close,.menu-option,.text-button,.friend-options button){
+html body :is(.nav-button,.back-menu,.button,.copy-button,.account-link,.auth-tabs button,.student-actions button,.friend-action,.friends-tabs button,.exercise-pagination button,.signal-tabs button,.theme-switch button,.avatar-trigger,.hamburger-trigger,.dots-button,.dialog-close,.menu-option,.friend-options button){
  background-color:var(--control-bg)!important;color:var(--control-ink)!important;border-color:var(--control-border)!important;
 }
 html body :is(.nav-exercises,.auth-submit,.button-primary,.auth-tabs button[aria-selected="true"],.friends-tabs button[aria-selected="true"],.exercise-pagination button[aria-current="page"],.signal-tabs button[aria-selected="true"],.nav-button.is-current){
@@ -47,3 +47,7 @@ html body .theme-switch button[aria-pressed="true"]{background-color:var(--contr
 .exercise-submit-action .nav-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:14px 24px;border:1px solid var(--action-red);border-radius:8px;font-weight:700;text-decoration:none}
 html body :is(button,.button,.nav-button,.back-menu,.account-link,.menu-option):focus-visible{outline:3px solid var(--control-ink);outline-offset:4px}
 @media(hover:hover){.exercise-submit-action .nav-button:hover{transform:translateY(-2px);filter:brightness(1.08)}}
+
+/* Text actions blend into their surrounding surface in either theme. */
+html body .text-button{background:transparent!important;color:inherit!important;border:0!important;box-shadow:none!important}
+html body .text-button:hover{text-decoration-thickness:2px}
