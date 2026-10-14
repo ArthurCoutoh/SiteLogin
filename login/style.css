@@ -56,3 +56,13 @@ html body .text-button:hover{text-decoration-thickness:2px}
 
 /* Hidden terms must override the flex layout of checkbox labels. */
 .updated-terms[hidden]{display:none!important}
+
+.header-actions{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+.notification-trigger{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:10px;border:1px solid #ff354a;border-radius:10px;background:#ff354a;color:#000;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}
+.notification-trigger svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+html[data-theme="light"] .notification-trigger{background:#000;color:#fff;border-color:#000}
+.notification-popover{right:68px;transform-origin:top right}
+.notification-note{margin:8px 12px;color:var(--muted);font-size:.85rem}
+.notification-trigger:active{transform:scale(.97)}
+@media(hover:hover){.notification-trigger:hover{box-shadow:0 0 0 3px #ff354a22;transform:translateY(-1px)}}
+@media(max-width:800px){.notification-trigger{width:38px;height:38px;padding:8px}.header-actions{gap:8px}.notification-popover{right:58px;max-width:calc(100vw - 28px)}}

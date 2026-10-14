@@ -50,8 +50,16 @@ window.PortfolioAuth=(()=>{
   if(studyNav)left.append(studyNav);
   const navButton=node('button','☰','hamburger-trigger');navButton.type='button';navButton.setAttribute('aria-label','Abrir navegação');navButton.setAttribute('aria-expanded','false');navButton.setAttribute('aria-controls','navigation-popover');header.append(navButton);
   const nav=node('div',undefined,'navigation-popover shell-popover');nav.id='navigation-popover';nav.hidden=true;outer.append(settings,nav);
+  const headerActions=node('div',undefined,'header-actions');header.append(headerActions);headerActions.append(navButton);
+  const bell=node('button',undefined,'notification-trigger');bell.type='button';bell.setAttribute('aria-label','Notificações');bell.setAttribute('aria-expanded','false');bell.setAttribute('aria-controls','notification-popover');
+  bell.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4M12 2V1"/></svg>';
+  const notifications=node('div',undefined,'notification-popover shell-popover');notifications.id='notification-popover';notifications.hidden=true;notifications.setAttribute('aria-label','Notificações');
+  notifications.append(node('h2','Notificações','popover-label'));
+  if(profile){notifications.append(node('p','Acompanhe suas mensagens e atividades.','notification-note'));for(const [label,url]of [['Mensagens','/mensagens/index.html'],[profile.role==='admin'?'Entregas e solicitações':'Minhas entregas e feedback','/'+(profile.role==='admin'?'alunos':'entregas')+'/index.html']]){const link=node('a',label,'menu-option');link.href=url;notifications.append(link);}}
+  else{const link=node('a','Entre para acessar suas atividades','menu-option');link.href='/login/index.html';notifications.append(link);}
+  headerActions.prepend(bell);outer.append(notifications);
   const menuMotion=new WeakMap();
-  function expanded(menu,value){(menu===nav?navButton:photo)?.setAttribute('aria-expanded',String(value));}
+  function expanded(menu,value){(menu===nav?navButton:menu===notifications?bell:photo)?.setAttribute('aria-expanded',String(value));}
   function closedFrame(menu){return menu===settings?{opacity:1,transform:'translateY(-48px)',clipPath:'inset(0% 0% 100% 0% round 12px)'}:{opacity:1,transform:'scaleX(.45)',clipPath:'inset(0% 0% 0% 100% round 12px)'};}
   const openedFrame={opacity:1,transform:'none',clipPath:'inset(0% 0% 0% 0% round 12px)'};
   function cancelMotion(menu){for(const animation of menu.getAnimations({subtree:true}))animation.cancel();menuMotion.delete(menu);}
@@ -62,15 +70,15 @@ window.PortfolioAuth=(()=>{
    const animation=menu.animate([start,closedFrame(menu)],{duration:600,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.hidden=true;menu.inert=false;delete menu.dataset.motionState;cancelMotion(menu);};
   }
-  function hide(){closeMenu(settings);closeMenu(nav);}
+  function hide(){closeMenu(settings);closeMenu(nav);closeMenu(notifications);}
   function toggle(menu,button){
    if(!menu.hidden&&menu.dataset.motionState!=='closing'){closeMenu(menu);return;}
-   closeMenu(menu===nav?settings:nav);cancelMotion(menu);menu.hidden=false;menu.inert=false;expanded(menu,true);menu.dataset.motionState='opening';
+   for(const other of [settings,nav,notifications])if(other!==menu)closeMenu(other);cancelMotion(menu);menu.hidden=false;menu.inert=false;expanded(menu,true);menu.dataset.motionState='opening';
    const animation=menu.animate([closedFrame(menu),openedFrame],{duration:600,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});menuMotion.set(menu,animation);
    [...menu.querySelectorAll('.menu-option,.popover-label,.theme-switch')].forEach((item,index)=>item.animate([{opacity:0,transform:menu===settings?'translateY(-24px)':'translateX(42px)'},{opacity:1,transform:'none'}],{duration:360,delay:60+Math.min(index*30,150),easing:'ease-in-out',fill:'backwards'}));
    animation.onfinish=()=>{if(menuMotion.get(menu)!==animation)return;menu.dataset.motionState='open';cancelMotion(menu);};
   }
-  navButton.addEventListener('click',()=>toggle(nav,navButton));photo?.addEventListener('click',()=>toggle(settings,photo));
+  bell.addEventListener('click',()=>toggle(notifications,bell));navButton.addEventListener('click',()=>toggle(nav,navButton));photo?.addEventListener('click',()=>toggle(settings,photo));
   document.addEventListener('click',e=>{if(!outer.contains(e.target))hide();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
   for(const [label,url,cls]of [['Menu principal','/index.html',''],['Exercícios','/exercicios/index.html','nav-exercises'],['Apoio','/apoio/index.html','nav-support'],['Contato','/contato/index.html','nav-contact-green']]){const link=node('a',label,'menu-option '+cls);link.href=url;nav.append(link);}
   if(profile){for(const [label,url]of [['Amigos','/amigos/index.html'],['Mensagens','/mensagens/index.html']]){const social=node('a',label,'menu-option');social.href=url;nav.append(social);}const deliveries=node('a',profile.role==='admin'?'Painel do professor':'Minhas entregas','menu-option');const ex=location.pathname.match(/\/exercicios\/exercicio-(\d+)\//);deliveries.href=profile.role==='admin'?'/alunos/index.html':'/entregas/index.html'+(ex?'?exercicio='+ex[1]:'');nav.append(deliveries);}
