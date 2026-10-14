@@ -93,3 +93,13 @@ html[data-theme="light"] .notification-trigger{background:#000;color:#fff;border
 .password-toggle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .password-toggle:hover{background:var(--line)}
 .password-field input::-ms-reveal{display:none}
+
+.notification-entry{border-bottom:1px solid var(--line);padding-bottom:8px}
+.notification-entry .notification-item{border-bottom:0}
+.notification-mark-read{display:block;margin:0 12px;padding:5px 0;min-height:36px;border:0;background:transparent;color:var(--text);font:inherit;font-size:.75rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.notification-mark-read:disabled{opacity:.65;cursor:default;text-decoration:none}
+.notification-read-label{display:block;margin:0 12px;font-size:.7rem;color:var(--muted)}
+.notification-read-status:empty{display:none}
+.notification-read-status{display:block;font-size:.7rem;color:var(--muted);margin:3px 12px}
+.terms-document ul{padding-left:22px;color:var(--muted)}
+.terms-document .privacy-contact{overflow-wrap:anywhere}
