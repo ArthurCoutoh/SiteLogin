@@ -15,7 +15,7 @@ public static class Sharing
         app.MapGet("/api/people/{id:long}/profile",async(long id,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
             await using var c=await db.Open();await using var q=Db.Command(c,@"SELECT u.name,p.biography,p.avatar FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=@id AND u.status='active' AND
-              (u.id=@me OR p.discoverable=TRUE OR EXISTS(SELECT 1 FROM friendships f WHERE f.low_user=LEAST(@me,@id) AND f.high_user=GREATEST(@me,@id) AND f.status='accepted') OR (@teacher=TRUE AND EXISTS(SELECT 1 FROM user_settings s WHERE s.user_id=@id AND s.share_with_teacher=TRUE)))
+              (u.id=@me OR p.discoverable=TRUE OR EXISTS(SELECT 1 FROM friendships f WHERE f.low_user=LEAST(@me,@id) AND f.high_user=GREATEST(@me,@id) AND f.status='accepted') OR @teacher=TRUE OR EXISTS(SELECT 1 FROM student_visibility v WHERE v.user_id=@id AND v.share_with_students=TRUE))
               AND (u.id=@me OR NOT EXISTS(SELECT 1 FROM friendships f WHERE f.low_user=LEAST(@me,@id) AND f.high_user=GREATEST(@me,@id) AND f.status='blocked'))",("@id",id),("@me",a.Id),("@teacher",a.Role=="admin"));
             string name,bio;bool hasAvatar;
             await using(var r=await q.ExecuteReaderAsync()){if(!await r.ReadAsync())return Error("Perfil indisponível.",404);name=r.GetString(0);bio=r.IsDBNull(1)?"":r.GetString(1);hasAvatar=!r.IsDBNull(2);}
@@ -26,7 +26,7 @@ public static class Sharing
             }
             var comments=new List<object>();
             if(allowed){await using var f=Db.Command(c,@"SELECT f.id,f.submission_id,f.content,f.created_at,u.name,u.id FROM peer_feedback f JOIN submissions s ON s.id=f.submission_id JOIN users u ON u.id=f.author_id WHERE s.user_id=@id AND u.status='active' ORDER BY f.id",("@id",id));await using var r=await f.ExecuteReaderAsync();while(await r.ReadAsync())comments.Add(new{id=r.GetInt64(0),submissionId=r.GetInt64(1),content=r.GetString(2),createdAt=r.GetDateTime(3),author=r.GetString(4),authorId=r.GetInt64(5)});}
-            return Results.Ok(new{id,name,biography=bio,hasAvatar,canViewSubmissions=allowed,canComment=allowed&&a.Role=="student"&&a.Id!=id,submissions,comments});
+            return Results.Ok(new{id,name,biography=bio,hasAvatar,canViewSubmissions=allowed,canComment=allowed&&a.Role=="student"&&a.Id!=id,canTeacherFeedback=allowed&&a.Role=="admin"&&a.Id!=id,submissions,comments});
         });
         app.MapPost("/api/submissions/{id:long}/comments",async(long id,FeedbackInput input,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);if(a.Role!="student")return Error("Use o feedback do professor no painel.");

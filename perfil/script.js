@@ -22,11 +22,12 @@
    if(!entries.length)comments.append(el('p','Nenhum feedback de aluno por enquanto.','auth-note'));
    for(const item of entries){const feedback=el('div',undefined,'feedback-box');const author=el('a',item.author);author.href='/perfil/index.html?usuario='+item.authorId;feedback.append(author,el('p',item.content),el('small',new Date(item.createdAt+'Z').toLocaleString('pt-BR')));comments.append(feedback);}
    card.append(comments);
-   if(profile.canComment){const form=el('form'),label=el('label','Seu feedback'),input=el('textarea'),button=el('button','Enviar feedback','auth-submit');input.required=true;input.maxLength=5000;input.rows=4;button.type='submit';label.append(input);const note=el('p','','auth-note');note.setAttribute('role','status');form.append(label,button,note);form.addEventListener('submit',async e=>{e.preventDefault();button.disabled=true;try{await api.request('/api/submissions/'+row.id+'/comments',{method:'POST',body:{content:input.value}});await load();status.textContent='Feedback enviado.';}catch(error){note.textContent=error.message;}finally{button.disabled=false;}});card.append(form);}
+   if(profile.canComment||profile.canTeacherFeedback){const form=el('form'),label=el('label','Seu feedback'),input=el('textarea'),button=el('button','Enviar feedback','auth-submit');input.required=true;input.maxLength=5000;input.rows=4;button.type='submit';label.append(input);const note=el('p','','auth-note');note.setAttribute('role','status');form.append(label,button,note);form.addEventListener('submit',async e=>{e.preventDefault();button.disabled=true;try{await api.request(profile.canTeacherFeedback?'/api/teacher/submissions/'+row.id+'/feedback':'/api/submissions/'+row.id+'/comments',{method:'POST',body:profile.canTeacherFeedback?{feedback:input.value}:{content:input.value}});await load();status.textContent='Feedback enviado.';}catch(error){note.textContent=error.message;}finally{button.disabled=false;}});card.append(form);}
    list.append(card);
   }
   const target=document.getElementById('shared-'+params.get('entrega'));if(target){tab('submissions');target.classList.add('notification-target');target.scrollIntoView({block:'center',behavior:'smooth'});}
  }
  try{viewer=await api.ready;if(!viewer){location.assign('/login/index.html?returnUrl='+encodeURIComponent(location.pathname+location.search));return;}await load();if(params.get('aba')==='submissions')tab('submissions');}catch(e){status.textContent=e.message;}
+ window.addEventListener('blur',()=>{list.replaceChildren();});window.addEventListener('focus',()=>{if(viewer)load().catch(e=>status.textContent=e.message);});
  window.addEventListener('portfolio-profile-change',()=>load().catch(e=>status.textContent=e.message));
 })();

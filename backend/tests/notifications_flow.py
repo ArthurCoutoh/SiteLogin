@@ -1,9 +1,12 @@
 """Real MySQL checks for notification ownership, deep links and independent delivery visibility."""
-import json, os, secrets
+import json, os, secrets, time
 from client import Client
 
 def call(c,path,body=None,status=200):
-    code,text=c.call(path,body)
+    for attempt in range(35):
+        code,text=c.call(path,body)
+        if code!=429: break
+        time.sleep(2)
     assert code==status,(path,code,text)
     return json.loads(text) if text.startswith(('{','[')) else text
 
