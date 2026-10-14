@@ -53,3 +53,6 @@ html body .text-button{background:transparent!important;color:inherit!important;
 html body .text-button:hover{text-decoration-thickness:2px}
 
 .privacy-confirmation{position:fixed;top:max(18px,env(safe-area-inset-top));left:50%;z-index:200;max-width:calc(100% - 32px);padding:14px 28px;border:1px solid #147b38;border-radius:10px;background:#1ed760;color:#061e0e;font-weight:700;text-align:center;box-shadow:0 8px 28px #0003;pointer-events:none;transform:translate(-50%,-150%)}
+
+/* Hidden terms must override the flex layout of checkbox labels. */
+.updated-terms[hidden]{display:none!important}
