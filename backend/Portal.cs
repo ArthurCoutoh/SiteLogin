@@ -15,14 +15,16 @@ public static class Portal
     {
         app.MapGet("/api/profile",async(HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
-            await using var c=await db.Open();await using var q=Db.Command(c,"SELECT p.share_with_teacher,p.terms_version,f.biography,f.avatar,f.discoverable FROM users u LEFT JOIN user_settings p ON p.user_id=u.id LEFT JOIN user_profiles f ON f.user_id=u.id WHERE u.id=@id",("@id",a.Id));await using var r=await q.ExecuteReaderAsync();
-            var found=await r.ReadAsync();return Results.Ok(new{id=a.Id,name=a.Name,email=a.Email,role=a.Role,shareWithTeacher=found&&!r.IsDBNull(0)&&r.GetBoolean(0),acceptedTerms=a.Role=="admin"||(found&&!r.IsDBNull(1)&&r.GetString(1)==TermsVersion),biography=found&&!r.IsDBNull(2)?r.GetString(2):"",avatar=found&&!r.IsDBNull(3)?r.GetString(3):null,discoverable=found&&!r.IsDBNull(4)&&r.GetBoolean(4)});
+            await using var c=await db.Open();await using var q=Db.Command(c,"SELECT p.share_with_teacher,p.terms_version,f.biography,f.avatar,f.discoverable,v.share_with_students FROM users u LEFT JOIN user_settings p ON p.user_id=u.id LEFT JOIN user_profiles f ON f.user_id=u.id LEFT JOIN student_visibility v ON v.user_id=u.id WHERE u.id=@id",("@id",a.Id));await using var r=await q.ExecuteReaderAsync();
+            var found=await r.ReadAsync();return Results.Ok(new{id=a.Id,name=a.Name,email=a.Email,role=a.Role,shareWithTeacher=found&&!r.IsDBNull(0)&&r.GetBoolean(0),acceptedTerms=a.Role=="admin"||(found&&!r.IsDBNull(1)&&r.GetString(1)==TermsVersion),biography=found&&!r.IsDBNull(2)?r.GetString(2):"",avatar=found&&!r.IsDBNull(3)?r.GetString(3):null,discoverable=found&&!r.IsDBNull(4)&&r.GetBoolean(4),shareWithStudents=found&&!r.IsDBNull(5)&&r.GetBoolean(5)});
         });
         app.MapPost("/api/profile/privacy",async(PrivacyRequest input,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
             if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
-            await db.Execute("INSERT INTO user_settings(user_id,share_with_teacher,terms_version,accepted_at) VALUES(@id,@share,@terms,@at) ON DUPLICATE KEY UPDATE share_with_teacher=@share,terms_version=COALESCE(@terms,terms_version),accepted_at=COALESCE(@at,accepted_at)",("@id",a.Id),("@share",input.ShareWithTeacher),("@terms",input.AcceptTerms?TermsVersion:null),("@at",input.AcceptTerms?DateTime.UtcNow:null));
-            return Results.Ok(new{message="Preferências salvas. O professor só pode consultar suas entregas enquanto você permitir."});
+            await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
+            await Execute(c,tx,"INSERT INTO user_settings(user_id,share_with_teacher,terms_version,accepted_at) VALUES(@id,@share,@terms,@at) ON DUPLICATE KEY UPDATE share_with_teacher=@share,terms_version=COALESCE(@terms,terms_version),accepted_at=COALESCE(@at,accepted_at)",("@id",a.Id),("@share",input.ShareWithTeacher),("@terms",input.AcceptTerms?TermsVersion:null),("@at",input.AcceptTerms?DateTime.UtcNow:null));
+            await Execute(c,tx,"INSERT INTO student_visibility(user_id,share_with_students) VALUES(@id,@share) ON DUPLICATE KEY UPDATE share_with_students=@share",("@id",a.Id),("@share",input.ShareWithStudents));
+            await tx.CommitAsync();return Results.Ok(new{message="Visibilidade das entregas salva."});
         });
         app.MapGet("/api/submissions",async(HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
@@ -99,7 +101,7 @@ public static class Portal
         return Results.Ok(rows);
     }
 }
-public record PrivacyRequest(bool ShareWithTeacher,bool AcceptTerms=false);
+public record PrivacyRequest(bool ShareWithTeacher,bool AcceptTerms=false,bool ShareWithStudents=false);
 public record SubmissionRequest(int ExerciseNumber,string? Title,string? Solution);
 public record FeedbackRequest(string? Feedback);
 public record ResetRequest(string? Email);

@@ -1,7 +1,7 @@
 name: Compilar e testar portal
 on:
   push:
-    branches: [main, student-portal, profile-social]
+    branches: [main, student-portal, profile-social, notification-sharing]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -57,3 +57,6 @@ jobs:
 
       - name: Testar perfis, amizades e mensagens
         run: python3 backend/tests/social_flow.py http://localhost:8080
+
+      - name: Testar notificações e feedbacks compartilhados
+        run: python3 backend/tests/notifications_flow.py http://localhost:8080

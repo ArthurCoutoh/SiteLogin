@@ -133,6 +133,8 @@ app.MapPost("/api/admin/students/{id:long}/status",async(long id,StatusRequest i
 });
 Portal.Map(app,db,hasher);
 Social.Map(app,db);
+Notifications.Map(app,db);
+Sharing.Map(app,db);
 // No public static-file middleware: authorization happens BEFORE reading study files.
 app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     if((path??"").Contains('\\'))return Results.NotFound();
@@ -142,7 +144,7 @@ app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     var relative=Path.GetRelativePath(siteRoot,full).Replace('\\','/');
     if(relative!="."&&relative.Split('/').Any(part=>part.StartsWith('.')))return Results.NotFound();
     var folder=relative.Split('/')[0];
-    var study=folder.Equals("mensagens",StringComparison.OrdinalIgnoreCase)||folder.Equals("amigos",StringComparison.OrdinalIgnoreCase)||folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)||folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
+    var study=folder.Equals("perfil",StringComparison.OrdinalIgnoreCase)||folder.Equals("mensagens",StringComparison.OrdinalIgnoreCase)||folder.Equals("amigos",StringComparison.OrdinalIgnoreCase)||folder.Equals("entregas",StringComparison.OrdinalIgnoreCase)||folder.Equals("exercicios",StringComparison.OrdinalIgnoreCase)||folder.Equals("apoio",StringComparison.OrdinalIgnoreCase);
     var admin=folder.Equals("alunos",StringComparison.OrdinalIgnoreCase);
     if(study||admin){
         var a=Current(context);

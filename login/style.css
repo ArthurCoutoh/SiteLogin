@@ -66,3 +66,23 @@ html[data-theme="light"] .notification-trigger{background:#000;color:#fff;border
 .notification-trigger:active{transform:scale(.97)}
 @media(hover:hover){.notification-trigger:hover{box-shadow:0 0 0 3px #ff354a22;transform:translateY(-1px)}}
 @media(max-width:800px){.notification-trigger{width:38px;height:38px;padding:8px}.header-actions{gap:8px}.notification-popover{right:58px;max-width:calc(100vw - 28px)}}
+
+.notification-trigger{position:relative}
+.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px;background:var(--text);color:var(--bg);border:1px solid var(--bg);border-radius:12px;font-size:10px;font-weight:800;line-height:1}
+.notification-popover{width:340px;max-width:calc(100vw - 28px)}
+.notification-item{display:block;padding:12px;border-bottom:1px solid var(--line);color:var(--text);border-radius:7px;transition:background-color .2s}
+.notification-item strong{font-size:.85rem;font-weight:500;display:block;overflow-wrap:anywhere}
+.notification-item time{display:block;font-size:.7rem;color:var(--muted);margin-top:5px}
+.notification-item.is-unread{border-left:3px solid var(--red)}
+.notification-item.is-unread strong{font-weight:700}
+.notification-item:hover{background:var(--line)}
+.notification-item:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+@media(max-width:520px){.notification-popover{right:12px}}
+.notification-target{outline:2px solid var(--red);outline-offset:4px;scroll-margin-top:110px}
+
+.public-profile-heading{display:flex;align-items:center;gap:22px;margin-block:18px 28px}
+.public-profile-heading img{width:80px;height:80px;border-radius:50%;object-fit:cover}
+.public-profile-heading h1{margin:0;font-size:clamp(1.8rem,4vw,3rem)}
+#public-biography{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}
+#profile-about p{color:var(--muted)}
+@media(max-width:520px){.public-profile-heading{align-items:flex-start;gap:14px}.public-profile-heading img{width:58px;height:58px}}
