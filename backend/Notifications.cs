@@ -17,6 +17,13 @@ public static class Notifications
             await db.Execute("INSERT IGNORE INTO notification_reads(user_id,event_key) VALUES(@me,@key)",("@me",a.Id),("@key",input.Id));
             return Results.Ok(new{message="Notificação lida."});
         }).RequireRateLimiting("social");
+        app.MapPost("/api/notifications/read-all",async(HttpContext context)=>{
+            if(context.Items["account"] is not Account a)return Results.Json(new{message="Entre para continuar."},statusCode:401);
+            var items=await List(db,a);var ids=items.Select(x=>x.Id).ToArray();
+            await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
+            foreach(var id in items.Where(x=>!x.Read).Select(x=>x.Id)){await using var q=Db.Command(c,"INSERT IGNORE INTO notification_reads(user_id,event_key) VALUES(@me,@key)",("@me",a.Id),("@key",id));q.Transaction=tx;await q.ExecuteNonQueryAsync();}
+            await tx.CommitAsync();return Results.Ok(new{ids,message="Notificações marcadas como lidas."});
+        }).RequireRateLimiting("social");
     }
     static async Task<List<Item>> List(Db db,Account a)
     {

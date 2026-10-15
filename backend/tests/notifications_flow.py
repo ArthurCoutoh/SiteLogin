@@ -12,6 +12,7 @@ def call(c,path,body=None,status=200):
 
 anon=Client(); teacher=Client()
 call(anon,'/api/notifications',status=401)
+call(anon,'/api/notifications/read-all',{},status=401)
 call(anon,'/perfil/index.html',status=302)
 call(teacher,'/api/auth/login',{'email':os.environ['TEST_ADMIN_EMAIL'],'password':os.environ['TEST_ADMIN_PASSWORD']})
 accounts=[]
@@ -36,6 +37,12 @@ msg=next(x for x in call(b,'/api/notifications') if x['kind']=='message')
 assert 'amigo='+str(aid) in msg['url'] and '&mensagem=' in msg['url']
 assert not any(x['kind']=='message' for x in call(c,'/api/notifications'))
 assert not any(x['kind']=='message' for x in call(teacher,'/api/notifications'))
+other_before=call(a,'/api/notifications')
+marked=call(b,'/api/notifications/read-all',{})
+assert msg['id'] in marked['ids']
+assert all(x['read'] for x in call(b,'/api/notifications'))
+assert call(a,'/api/notifications')==other_before
+assert set(call(b,'/api/notifications/read-all',{})['ids'])==set(marked['ids'])
 submission=call(a,'/api/submissions',{'exerciseNumber':1,'title':'Teste de visibilidade','solution':'Console.WriteLine("<b>literal</b>");'})['id']
 assert not call(b,f'/api/people/{aid}/profile')['canViewSubmissions']
 call(b,f'/api/submissions/{submission}/comments',{'content':'Não autorizado'},404)

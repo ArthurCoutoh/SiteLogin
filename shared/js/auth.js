@@ -57,19 +57,41 @@ window.PortfolioAuth=(()=>{
   notifications.append(node('h2','Notificações','popover-label'));
   const notificationList=node('div',undefined,'notification-list');notificationList.setAttribute('aria-live','polite');notifications.append(notificationList);
   const badge=node('span',undefined,'notification-count');badge.hidden=true;badge.setAttribute('aria-hidden','true');bell.append(badge);
-  let notificationBusy=false;
+  let notificationBusy=false,notificationReadPromise=null,notificationItems=[];const notificationKnownRead=new Set();
+  function markAllNotificationsRead(){
+   if(notificationReadPromise)return notificationReadPromise;
+   if(!notificationItems.some(x=>!x.read))return Promise.resolve();
+   notificationReadPromise=(async()=>{
+    const data=await request('/api/notifications/read-all',{method:'POST',body:{}});const ids=new Set(data.ids);for(const id of ids)notificationKnownRead.add(id);
+    for(const item of notificationItems)if(ids.has(item.id))item.read=true;
+    for(const entry of notificationList.querySelectorAll('.notification-entry'))if(ids.has(entry.dataset.notificationId)){
+     entry.classList.remove('is-unread');entry.querySelector('.notification-item')?.classList.remove('is-unread');
+     const dot=entry.querySelector('.notification-unread-dot');if(dot)dot.hidden=true;
+     const mark=entry.querySelector('.notification-mark-read');if(mark){mark.disabled=true;mark.textContent='Lida';mark.setAttribute('aria-label','Notificação lida');}
+    }
+    const remaining=notificationItems.filter(x=>!x.read).length;badge.hidden=!remaining;badge.textContent=remaining>99?'99+':String(remaining);bell.setAttribute('aria-label',remaining?'Notificações, '+remaining+' não lidas':'Notificações');
+   })().finally(()=>{notificationReadPromise=null;});return notificationReadPromise;
+  }
+  function autoReadNotifications(){markAllNotificationsRead().catch(error=>{let state=notificationList.querySelector('.notification-error');if(!state){state=node('p','','notification-note notification-error');state.setAttribute('role','status');notificationList.append(state);}state.textContent=error.message;});}
+
   async function loadNotifications(){
-   if(notificationBusy||document.hidden)return;notificationBusy=true;
+   if(notificationBusy||notificationReadPromise||document.hidden)return;notificationBusy=true;
    try{
     if(!profile){notificationList.replaceChildren();const login=node('a','Entre para ver suas notificações','menu-option');login.href='/login/index.html';notificationList.append(login);return;}
-    const items=await request('/api/notifications');notificationList.replaceChildren();
+    const items=await request('/api/notifications');for(const item of items)if(notificationKnownRead.has(item.id))item.read=true;notificationItems=items;notificationList.replaceChildren();
     const unread=items.filter(item=>!item.read).length;badge.hidden=!unread;badge.textContent=unread>99?'99+':String(unread);bell.setAttribute('aria-label',unread?'Notificações, '+unread+' não lidas':'Notificações');
     if(!items.length)notificationList.append(node('p','Nenhuma notificação por enquanto.','notification-note'));
     for(const item of items){
      const target=new URL(item.url,location.origin);if(target.origin!==location.origin)continue;
      const link=node('a',undefined,'notification-item'+(item.read?'':' is-unread'));link.href=target.pathname+target.search;
      link.append(node('strong',item.title),node('time',new Date(item.createdAt+'Z').toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})));
-     link.addEventListener('click',async e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();link.classList.remove('is-unread');try{await request('/api/notifications/read',{method:'POST',body:{id:item.id}});}catch{}location.assign(link.href);});const entry=node('div',undefined,'notification-entry');entry.append(link);if(!item.read){const mark=node('button','Marcar como lida','notification-mark-read');mark.type='button';mark.setAttribute('aria-label','Marcar como lida: '+item.title);const state=node('span','','notification-read-status');state.setAttribute('role','status');mark.addEventListener('click',async()=>{mark.disabled=true;try{await request('/api/notifications/read',{method:'POST',body:{id:item.id}});item.read=true;link.classList.remove('is-unread');mark.textContent='Lida';mark.setAttribute('aria-label','Notificação lida');const remaining=items.filter(x=>!x.read).length;badge.hidden=!remaining;badge.textContent=remaining>99?'99+':String(remaining);bell.setAttribute('aria-label',remaining?'Notificações, '+remaining+' não lidas':'Notificações');state.textContent='Notificação marcada como lida.';}catch(e){state.textContent=e.message;mark.disabled=false;}});entry.append(mark,state);}else entry.append(node('span','Lida','notification-read-label'));notificationList.append(entry);
+     link.addEventListener('click',async e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey){autoReadNotifications();return;}e.preventDefault();try{await markAllNotificationsRead();}catch{}location.assign(link.href);});
+     const entry=node('div',undefined,'notification-entry'+(item.read?'':' is-unread'));entry.dataset.notificationId=item.id;entry.append(link);
+     const dot=node('span',undefined,'notification-unread-dot');dot.hidden=item.read;dot.setAttribute('aria-label','Não lida');entry.append(dot);
+     entry.addEventListener('mouseenter',autoReadNotifications);entry.addEventListener('focusin',autoReadNotifications);
+     if(!item.read){const mark=node('button','Marcar como lida','notification-mark-read');mark.type='button';mark.setAttribute('aria-label','Marcar como lida: '+item.title);mark.addEventListener('click',autoReadNotifications);entry.append(mark);}
+     else entry.append(node('span','Lida','notification-read-label'));
+     notificationList.append(entry);
     }
    }catch{notificationList.replaceChildren(node('p','Não foi possível carregar. Clique no sino para tentar novamente.','notification-note'));}
    finally{notificationBusy=false;}
