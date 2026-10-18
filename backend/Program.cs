@@ -11,6 +11,7 @@ var port=builder.Configuration["PORT"];
 if(!string.IsNullOrWhiteSpace(port))builder.WebHost.UseUrls($"http://0.0.0.0:{int.Parse(port)}");
 builder.WebHost.ConfigureKestrel(o=>o.Limits.MaxRequestBodySize=131072);
 builder.Services.AddSingleton<Db>();
+builder.Services.AddHostedService<ActivityMaintenance>();
 builder.Services.AddSingleton<IPasswordHasher<Account>,PasswordHasher<Account>>();
 builder.Services.Configure<PasswordHasherOptions>(o=>o.IterationCount=210000);
 builder.Services.AddAntiforgery(o=>{
@@ -98,10 +99,12 @@ app.MapPost("/api/auth/login",async(LoginRequest input,HttpContext context)=>{
     await using var reset=Db.Command(connection,"UPDATE users SET failed_attempts=0,locked_until=NULL,password_hash=@hash WHERE id=@id",("@hash",hash),("@id",account.Id));reset.Transaction=tx;await reset.ExecuteNonQueryAsync();
     var token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     await using var session=Db.Command(connection,"INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(@hash,@id,@expires)",("@hash",Input.Hash(token)),("@id",account.Id),("@expires",DateTime.UtcNow.AddHours(8)));session.Transaction=tx;await session.ExecuteNonQueryAsync();
+    await Activity.Login(connection,tx,account.Id,Input.Hash(token));
     await tx.CommitAsync();context.Response.Cookies.Append("portfolio.session",token,SessionCookie());
     return Results.Ok(new{message="Login realizado.",role=account.Role});
 }).RequireRateLimiting("auth");
 app.MapPost("/api/auth/logout",async(HttpContext context)=>{
+    await Activity.Logout(db,context);
     if(context.Request.Cookies.TryGetValue("portfolio.session",out var token))await db.Execute("DELETE FROM sessions WHERE token_hash=@hash",("@hash",Input.Hash(token)));
     context.Response.Cookies.Delete("portfolio.session",SessionCookie());return Results.Ok(new{message="Você saiu."});
 });
@@ -135,6 +138,7 @@ Portal.Map(app,db,hasher);
 Social.Map(app,db);
 Notifications.Map(app,db);
 Sharing.Map(app,db);
+Activity.Map(app,db);
 // No public static-file middleware: authorization happens BEFORE reading study files.
 app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     if((path??"").Contains('\\'))return Results.NotFound();
@@ -156,6 +160,7 @@ app.MapGet("/{**path}",async(string? path,HttpContext context)=>{
     var extension=Path.GetExtension(full).ToLowerInvariant();
     if(extension is not (".html" or ".css" or ".js" or ".png" or ".jpg" or ".jpeg" or ".svg" or ".webp" or ".ico" or ".pdf"))return Results.NotFound();
     if(!File.Exists(full)||!fileTypes.TryGetContentType(full,out var contentType))return Results.NotFound();
+    if(extension==".html"&&Current(context)!=null)await Activity.Touch(db,context,Path.GetRelativePath(siteRoot,full).Replace('\\','/'));
     return Results.File(full,contentType,enableRangeProcessing:false);
 });
 app.Run();

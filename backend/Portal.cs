@@ -4,7 +4,7 @@ using MySqlConnector;
 
 public static class Portal
 {
-    public const string TermsVersion="2026-10-13.3";
+    public const string TermsVersion="2026-10-17.1";
     static Account? Current(HttpContext c)=>c.Items["account"] as Account;
     static IResult Error(string message,int status=400)=>Results.Json(new{message},statusCode:status);
     static async Task<int> Execute(MySqlConnection c,MySqlTransaction tx,string sql,params (string Key,object? Value)[] args)

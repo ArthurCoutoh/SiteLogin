@@ -60,3 +60,8 @@ jobs:
 
       - name: Testar notificações e feedbacks compartilhados
         run: python3 backend/tests/notifications_flow.py http://localhost:8080
+
+      - name: Testar atividade, presença e sessões
+        env:
+          MYSQL_TEST_CONTAINER: ${{ job.services.mysql.id }}
+        run: python3 backend/tests/activity_flow.py http://localhost:8080

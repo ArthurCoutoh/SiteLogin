@@ -102,3 +102,30 @@ CREATE TABLE IF NOT EXISTS peer_feedback (
  FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE,
  INDEX peer_submission(submission_id,id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS activity_sessions (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ session_key CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+ login_at DATETIME NULL,
+ observed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ logout_at DATETIME NULL,
+ exit_reason VARCHAR(20) NULL,
+ online_seconds BIGINT NOT NULL DEFAULT 0,
+ FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+ INDEX activity_user(user_id,id),
+ INDEX activity_retention(observed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS activity_events (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ session_id BIGINT NOT NULL,
+ event_type VARCHAR(16) NOT NULL,
+ page_path VARCHAR(255) NULL,
+ occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+ FOREIGN KEY(session_id) REFERENCES activity_sessions(id) ON DELETE CASCADE,
+ INDEX activity_event_user(user_id,id),
+ INDEX activity_event_retention(occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
