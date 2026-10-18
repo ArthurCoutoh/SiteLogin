@@ -119,3 +119,11 @@ html[data-theme="light"] .notification-trigger{background:#000;color:#fff;border
 .activity-event{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line);font-size:.85rem;overflow-wrap:anywhere}.activity-event time{color:var(--muted);flex-shrink:0}
 #activity-detail h3{margin-top:28px}
 @media(max-width:800px){.activity-users{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.activity-users{grid-template-columns:1fr}}
+
+.activity-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.activity-heading h2{margin:0}
+.activity-refresh{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:8px;margin:0;flex-shrink:0}
+.activity-refresh svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.activity-refresh.is-refreshing svg{animation:activity-refresh-spin .8s linear infinite}
+@keyframes activity-refresh-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.activity-refresh.is-refreshing svg{animation:none}}
