@@ -9,7 +9,7 @@ def expect(client,path,body=None,status=200,csrf=True):
     code,data=client.call(path,body,csrf)
     assert code==status,(path,code,data)
     return json.loads(data) if data.startswith(('{','[')) else data
-for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-30/index.html']:
+for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-31/index.html']:
     expect(anon,path,status=302)
 expect(anon,'/exercicios/atividades.js',status=401)
 for path in ['/backend/schema.sql','/.env']:
@@ -26,13 +26,16 @@ expect(student,'/api/auth/register',registration)
 expect(student,'/api/auth/login',{'email':email,'password':password})
 expect(teacher,'/api/auth/login',{'email':admin_email,'password':admin_password})
 uid=next(x['id'] for x in expect(teacher,'/api/admin/students') if x['email']==email)
-for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-30/index.html','/exercicios/atividades.js']:
+for path in ['/exercicios/index.html','/apoio/index.html','/entregas/index.html','/exercicios/exercicio-31/index.html','/exercicios/atividades.js']:
     expect(student,path)
 expect(student,'/api/admin/students',status=403)
 expect(student,'/alunos/index.html',status=403)
 profile=expect(student,'/api/profile');assert profile['acceptedTerms'] and not profile['shareWithTeacher']
-expect(student,'/api/submissions',{'exerciseNumber':31,'title':'Inválido','solution':'x'},status=400)
+expect(student,'/api/submissions',{'exerciseNumber':32,'title':'Inválido','solution':'x'},status=400)
 expect(student,'/api/submissions',{'exerciseNumber':1,'title':'Inválido','solution':'x'*20001},status=400)
+new_sid=expect(student,'/api/submissions',{'exerciseNumber':31,'title':'Juros simples e compostos','solution':'Console.WriteLine("juros");'})['id']
+assert next(x for x in expect(student,'/api/submissions') if x['id']==new_sid)['exerciseNumber']==31
+expect(student,f'/api/submissions/{new_sid}/delete',{})
 solution='<script>alert("nunca executar")</script>\nConsole.WriteLine("oi");'
 sid=expect(student,'/api/submissions',{'exerciseNumber':1,'title':'Minha solução','solution':solution})['id']
 assert expect(student,'/api/submissions')[0]['solution']==solution
