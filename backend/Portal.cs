@@ -35,7 +35,7 @@ public static class Portal
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
             if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
             var title=input.Title?.Trim();
-            if(input.ExerciseNumber<1||input.ExerciseNumber>30||string.IsNullOrWhiteSpace(title)||title.Length>150||string.IsNullOrWhiteSpace(input.Solution)||input.Solution.Length>20000)return Error("Escolha um exercício de 1 a 30, título de até 150 caracteres e código de até 20.000 caracteres.");
+            if(input.ExerciseNumber<1||input.ExerciseNumber>31||string.IsNullOrWhiteSpace(title)||title.Length>150||string.IsNullOrWhiteSpace(input.Solution)||input.Solution.Length>20000)return Error("Escolha um exercício de 1 a 31, título de até 150 caracteres e código de até 20.000 caracteres.");
             await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
             // Lock the user before settings so account bans and privacy changes remain consistent.
             var active=await LockUser(c,tx,a.Email);if(active?.Status!="active")return Error("Sua conta está bloqueada.",403);

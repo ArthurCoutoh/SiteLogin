@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="pt-BR"><head><script>try{document.documentElement.dataset.theme=localStorage.getItem("portfolio-theme")==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Exercício 31: Calculadora de Juros Simples e Compostos</title><link rel="stylesheet" href="../../shared/css/base.css"><link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="../pagina.css"><script src="../../shared/js/common.js" defer></script><script src="../../shared/js/background.js" defer></script><link rel="stylesheet" href="../../login/style.css"><script src="../../shared/js/auth.js" defer></script></head><body><canvas id="constellation-background" data-image="../../assets/maos-constelacao.png" aria-hidden="true"></canvas><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="exercise-header"><nav aria-label="Navegação do exercício"><a class="nav-button" href="../../index.html">Menu principal</a><a class="nav-button nav-exercises" href="../index.html">Exercícios</a><a class="nav-button nav-support" href="../../apoio/index.html">Apoio</a></nav></header><main id="conteudo" class="container exercise-detail"><article class="exercise-document"><div class="exercise-heading"><p class="eyebrow">EXERCÍCIO 31 / C#</p><span class="difficulty-badge" data-difficulty="medium">Médio</span></div><h1>Calculadora de Juros Simples e Compostos</h1><div class="exercise-content"><p>Crie uma aplicação de console em C# que solicite um capital inicial, uma taxa de juros, o período da taxa e um prazo. Mostre os juros e o montante final pelos regimes de juros simples e compostos.</p>
+<h2>Estruturas a praticar</h2><p><code>if / else</code>, <code>switch case</code>, <code>while</code>, <code>funções</code> e, opcionalmente, <code>Regex</code>.</p>
+<h2>Entradas e regras</h2><ol>
+<li>Peça o capital inicial (valor em reais), maior que zero.</li>
+<li>Peça a taxa de juros em porcentagem: por exemplo, 2 significa 2%, e não 0,02. Aceite taxa zero, mas rejeite valores negativos.</li>
+<li>Peça se a taxa é ao dia, ao mês ou ao ano. Você pode começar com um menu: <code>1 = ao ano</code>, <code>2 = ao mês</code>, <code>3 = ao dia</code>. Use <code>switch case</code> e <code>default</code> para validar a opção.</li>
+<li>Depois de escolher o período, peça um prazo inteiro maior que zero naquela mesma unidade: taxa ao mês → prazo em meses; taxa ao dia → prazo em dias; taxa ao ano → prazo em anos. Não misture unidades nem faça conversões de taxas neste exercício.</li>
+<li>Calcule os dois resultados com os mesmos dados. Exiba capital, taxa e sua unidade, prazo, juros e montante em cada regime. Mostre também a diferença entre os montantes.</li>
+<li>Se uma entrada for inválida, explique o erro e peça novamente com <code>while</code>, sem encerrar o programa.</li></ol>
+<h2>Fórmulas</h2><pre><code>C = capital inicial
+i = taxa informada / 100
+t = prazo na mesma unidade da taxa
+
+Juros simples:
+J = C * i * t
+M = C + J
+
+Juros compostos:
+M = C * Math.Pow(1 + i, t)
+J = M - C</code></pre><p>Crie funções separadas para os cálculos. Use <code>double</code> com <code>Math.Pow</code>; não use <code>^</code> como potência em C#. Faça os cálculos sem arredondar resultados intermediários e formate a saída com duas casas decimais.</p>
+<h2>Dica opcional: escolher o período por texto</h2><p>Em vez do menu numérico, você pode pedir uma palavra. Nesta alternativa, aceite somente estas oito formas: <code>dia</code>, <code>Dia</code>, <code>Mês</code>, <code>mes</code>, <code>mês</code>, <code>Mes</code>, <code>ano</code> e <code>Ano</code>.</p><p>Use o código abaixo para validar a entrada. A Regex confere a palavra inteira e diferencia maiúsculas e minúsculas. Não use <code>RegexOptions.IgnoreCase</code> nem <code>Trim()</code> antes da validação se quiser aceitar exatamente a lista: <code>DIA</code>, <code>ANO</code>, <code>MES</code>, espaços extras e palavras com letras a mais devem ser recusados.</p>
+<pre><code>using System.Text.RegularExpressions;
+
+string periodo;
+while (true)
+{
+    Console.Write("Período da taxa (dia, mês ou ano): ");
+    string? entrada = Console.ReadLine();
+
+    if (entrada is null)
+    {
+        Console.WriteLine("Entrada encerrada.");
+        return;
+    }
+
+    if (!Regex.IsMatch(entrada, @"\A(?:dia|Dia|Mês|mes|mês|Mes|ano|Ano)\z"))
+    {
+        Console.WriteLine("Período inválido. Digite dia, mês, mes ou ano.");
+        continue;
+    }
+
+    // Normalize somente depois de validar.
+    periodo = entrada.ToLowerInvariant();
+    if (periodo == "mes")
+        periodo = "mês";
+
+    break;
+}
+
+string unidadePrazo = periodo switch
+{
+    "dia" =&gt; "dias",
+    "mês" =&gt; "meses",
+    "ano" =&gt; "anos",
+    _ =&gt; throw new InvalidOperationException("Período inválido.")
+};
+
+Console.Write($"Prazo em {unidadePrazo}: ");
+// Agora leia e valide o prazo para continuar o cálculo.</code></pre>
+<h2>Validação: o que usar</h2><p>Use <code>double.TryParse</code> para capital e taxa e <code>int.TryParse</code> para o prazo. Use <code>if / else</code> para verificar os limites e <code>double.IsFinite</code> para rejeitar NaN, infinito e resultados que ultrapassem a capacidade do tipo. Para aceitar vírgula decimal, use explicitamente a cultura <code>pt-BR</code>, por exemplo:</p>
+<pre><code>using System.Globalization;
+
+var cultura = CultureInfo.GetCultureInfo("pt-BR");
+bool valido = double.TryParse(
+    Console.ReadLine(),
+    NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+    cultura,
+    out double capital
+) &amp;&amp; double.IsFinite(capital) &amp;&amp; capital &gt; 0;</code></pre><p>Adapte a condição para a taxa (<code>&gt;= 0</code>). Para o prazo, valide com <code>int.TryParse</code> e <code>prazo &gt; 0</code>. Se o cálculo resultar em um número não finito, informe que os valores são grandes demais.</p>
+<h2>Exemplo de interação</h2><pre><code>Capital inicial (R$): 1000
+Taxa de juros (%): 2
+Período da taxa (dia, mês ou ano): mês
+Prazo em meses: 3
+
+Capital: R$ 1.000,00
+Taxa: 2,00% ao mês
+Prazo: 3 meses
+
+Juros simples: R$ 60,00
+Montante simples: R$ 1.060,00
+
+Juros compostos: R$ 61,21
+Montante composto: R$ 1.061,21
+
+Diferença entre os montantes: R$ 1,21</code></pre>
+<h2>Como conferir</h2><ul><li>Com taxa zero, ambos os montantes devem ser iguais ao capital.</li><li>Com prazo de um período, os dois regimes devem produzir o mesmo montante.</li><li>Com capital 1000, taxa 10% ao ano e prazo de 2 anos, confira R$ 1.200,00 no simples e R$ 1.210,00 no composto.</li><li>Teste todas as oito formas aceitas e rejeite vazio, espaços, <code>dias</code>, <code>MÊS</code>, <code>Diaa</code> e um texto com quebra de linha ao final.</li><li>Teste números inválidos, capital negativo, taxa negativa e prazo zero.</li></ul></div></article></main></body></html>

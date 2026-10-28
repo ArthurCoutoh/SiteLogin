@@ -367,5 +367,18 @@ window.ATIVIDADES = [
     "enunciado": "Atenda pessoas por ordem de chegada e reutilize posições de um vetor.",
     "pagina": "exercicio-30/index.html",
     "disciplina": "Programação em C#"
-  }
+  },
+{
+  "titulo": "Calculadora de Juros Simples e Compostos",
+  "dificuldade": "medio",
+  "tipos": [
+    "if-else",
+    "switch-case",
+    "while",
+    "funcoes"
+  ],
+  "enunciado": "Compare juros simples e compostos e valide o período por menu ou texto com Regex.",
+  "pagina": "exercicio-31/index.html",
+  "disciplina": "Programação em C#"
+}
 ];
