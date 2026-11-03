@@ -51,6 +51,30 @@ expect(other,'/api/auth/register',{'name':'Outro aluno','email':other_email,'pas
 expect(other,'/api/auth/login',{'email':other_email,'password':password})
 assert expect(other,'/api/submissions')==[]
 expect(other,f'/api/submissions/{sid}/delete',{},status=404)
+edit_body={'exerciseNumber':2,'title':'Entrega revisada','solution':solution+'\n// Revisão'}
+expect(anon,f'/api/submissions/{sid}',status=401)
+expect(other,f'/api/submissions/{sid}',status=404)
+expect(teacher,f'/api/submissions/{sid}',status=403)
+expect(student,'/api/submissions/999999999',status=404)
+assert expect(student,f'/api/submissions/{sid}')['solution']==solution
+expect(other,f'/api/submissions/{sid}/update',edit_body,status=404)
+expect(teacher,f'/api/submissions/{sid}/update',edit_body,status=403)
+expect(student,f'/api/submissions/{sid}/update',edit_body,csrf=False,status=400)
+expect(student,f'/api/submissions/{sid}/update',{**edit_body,'title':' '},status=400)
+expect(student,f'/api/submissions/{sid}/update',{**edit_body,'solution':'x'*20001},status=400)
+expect(student,f'/api/submissions/{sid}/update',{**edit_body,'exerciseNumber':32},status=400)
+expect(student,'/api/submissions/999999999/update',edit_body,status=404)
+before=expect(student,'/api/submissions')
+expect(student,f'/api/submissions/{sid}/update',edit_body)
+expect(student,f'/api/submissions/{sid}/update',edit_body) # Saving unchanged values must also succeed.
+after=expect(student,'/api/submissions')
+assert len(after)==len(before)
+updated=next(x for x in after if x['id']==sid)
+assert updated['title']==edit_body['title'] and updated['solution']==edit_body['solution'] and updated['exerciseNumber']==2
+assert updated['createdAt']==next(x for x in before if x['id']==sid)['createdAt']
+assert updated['feedback']=='Bom começo! Reveja a validação.'
+assert expect(student,f'/api/submissions/{sid}')['solution']==edit_body['solution']
+assert next(x for x in expect(teacher,'/api/teacher/submissions') if x['id']==sid)['solution']==edit_body['solution']
 expect(student,'/api/profile/privacy',{'shareWithTeacher':False})
 assert all(x['id']!=sid for x in expect(teacher,'/api/teacher/submissions'))
 expect(teacher,f'/api/teacher/submissions/{sid}/feedback',{'feedback':'Sem permissão'},status=404)

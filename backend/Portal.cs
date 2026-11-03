@@ -44,6 +44,27 @@ public static class Portal
             await using var q=Db.Command(c,"INSERT INTO submissions(user_id,exercise_number,title,solution) VALUES(@id,@n,@title,@code)",("@id",a.Id),("@n",input.ExerciseNumber),("@title",title),("@code",input.Solution));q.Transaction=tx;await q.ExecuteNonQueryAsync();var id=q.LastInsertedId;await tx.CommitAsync();
             return Results.Ok(new{id,message="Entrega salva. Para receber feedback, permita o acesso do professor em Privacidade."});
         });
+        app.MapGet("/api/submissions/{id:long}",async(long id,HttpContext context)=>{
+            var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Acesso restrito ao autor da entrega.",403);
+            await using var c=await db.Open();await using var q=Db.Command(c,"SELECT id,exercise_number,title,solution FROM submissions WHERE id=@id AND user_id=@user",("@id",id),("@user",a.Id));await using var r=await q.ExecuteReaderAsync();
+            if(!await r.ReadAsync())return Error("Entrega não encontrada.",404);
+            return Results.Ok(new{id=r.GetInt64(0),exerciseNumber=r.GetInt32(1),title=r.GetString(2),solution=r.GetString(3)});
+        });
+        app.MapPost("/api/submissions/{id:long}/update",async(long id,SubmissionRequest input,HttpContext context)=>{
+            var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
+            if(a.Role!="student")return Error("Acesso restrito ao autor da entrega.",403);
+            var title=input.Title?.Trim();
+            if(input.ExerciseNumber<1||input.ExerciseNumber>31||string.IsNullOrWhiteSpace(title)||title.Length>150||string.IsNullOrWhiteSpace(input.Solution)||input.Solution.Length>20000)return Error("Escolha um exercício de 1 a 31, título de até 150 caracteres e código de até 20.000 caracteres.");
+            await using var c=await db.Open();await using var tx=await c.BeginTransactionAsync();
+            var active=await LockUser(c,tx,a.Email);if(active?.Status!="active")return Error("Sua conta está bloqueada.",403);
+            await using var terms=Db.Command(c,"SELECT terms_version FROM user_settings WHERE user_id=@id FOR UPDATE",("@id",a.Id));terms.Transaction=tx;
+            if((await terms.ExecuteScalarAsync()) as string!=TermsVersion)return Error("Aceite os termos em Privacidade antes de editar.",403);
+            await using var find=Db.Command(c,"SELECT id FROM submissions WHERE id=@id AND user_id=@user FOR UPDATE",("@id",id),("@user",a.Id));find.Transaction=tx;
+            if(await find.ExecuteScalarAsync()==null)return Error("Entrega não encontrada.",404);
+            await Execute(c,tx,"UPDATE submissions SET exercise_number=@n,title=@title,solution=@code WHERE id=@id AND user_id=@user",("@n",input.ExerciseNumber),("@title",title),("@code",input.Solution),("@id",id),("@user",a.Id));
+            await tx.CommitAsync();return Results.Ok(new{id,message="Entrega atualizada. Os feedbacks anteriores foram preservados e podem se referir à versão anterior do código."});
+        });
         app.MapPost("/api/submissions/{id:long}/delete",async(long id,HttpContext context)=>{
             var a=Current(context);if(a==null)return Error("Entre para continuar.",401);
             if(a.Role!="student")return Error("Use o painel do professor para consultar entregas autorizadas.",403);
